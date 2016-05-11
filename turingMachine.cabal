@@ -5,7 +5,7 @@ name:                turingMachine
 -- PVP summary:      +-+------- breaking API changes
 --                   | | +----- non-breaking API additions
 --                   | | | +--- code changes with no API change
-version:             0.1.1.2
+version:             0.1.2.0
 synopsis:            An implementation of Turing Machine and Automaton
 description:         An implementation of Turing Machine and Automaton for 
                      language theory
@@ -32,6 +32,7 @@ library
                        , Math.Model.Automaton.Finite
                        , Math.Model.Automaton.Stack
                        , Math.Model.Turing
+                       , Math.Model.Turing.TwoWays
   -- other-modules:       
   other-extensions:    TypeSynonymInstances
                        , TypeOperators

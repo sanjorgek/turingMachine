@@ -5,7 +5,7 @@
 {-# LANGUAGE ExistentialQuantification #-}
 {-|
 Module      : Turing
-Description : Abstraccion de las maquinas de turing
+Description : Turing machine abstaction
 Copyright   : (c) Jorge Santiago Alvarez Cuadros, 2016
 License     : GPL-3
 Maintainer  : sanjorgek@ciencias.unam.mx
@@ -28,11 +28,11 @@ class Ways a where
 	oposite::a -> a
 
 data LRS = 
-	-- |Movimiento a la izquierda
+	-- |Left move
 	L
-	-- |No movimiento
+	-- |No move
 	| S
-	-- |Movimiento a la derecha
+	-- |Right move
 	| R deriving(Show, Eq, Ord, Bounded)
 
 instance Ways LRS where
