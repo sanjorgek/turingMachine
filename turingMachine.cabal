@@ -5,26 +5,10 @@ name:                turingMachine
 -- PVP summary:      +-+------- breaking API changes
 --                   | | +----- non-breaking API additions
 --                   | | | +--- code changes with no API change
-version:             0.1.1.1
+version:             0.1.1.2
 synopsis:            An implementation of Turing Machine and Automaton
-description:         # Turing Machine Model
-                     An implementation of Turing Machine and Automaton for 
+description:         An implementation of Turing Machine and Automaton for 
                      language theory
-
-                     ## Models
-                     ### Finite Automaton
-
-                     Finite State machine, with no memory.
-                     Exist:
-
-                     1. Recognizer
-                     2. Generator
-                     3. Transducer
-
-                     ### Stack Automaton
-                     Stack memory machine with states
-
-                     ### Turing Machine
 homepage:            https://github.com/sanjorgek/turingMachine
 license:             GPL-3
 license-file:        LICENSE
