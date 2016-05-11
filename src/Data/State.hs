@@ -22,7 +22,6 @@ module Data.State
 ) where
 import Control.Applicative
 import Control.Monad
-import qualified Data.Set as Set
 
 {-|
 Macine states are only a label, maybe a letter
