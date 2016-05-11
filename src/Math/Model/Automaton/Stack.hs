@@ -12,7 +12,7 @@ Portability : portable
 
 Stack Automaton
 -}
-module Computability.Model.Automaton.Stack
+module Math.Model.Automaton.Stack
 (
 	Delta(..)
 	,liftD

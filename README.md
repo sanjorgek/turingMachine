@@ -1,5 +1,5 @@
 # Turing Machine Model
-An implementation of Turing Machine and Automaton for langiaje theory
+An implementation of Turing Machine and Automaton for language theory
 
 ## Models
 ### Finite Automaton

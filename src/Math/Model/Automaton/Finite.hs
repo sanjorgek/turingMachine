@@ -13,7 +13,7 @@ Portability : portable
 Finite Automaton is a stateful machine where all transition means that machine 
 reads a symbol
 -}
-module Computability.Model.Automaton.Finite
+module Math.Model.Automaton.Finite
 (
 	-- * Deterministic
 	-- ** Function 

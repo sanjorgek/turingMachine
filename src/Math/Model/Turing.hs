@@ -14,7 +14,7 @@ Portability : portable
 
 Turing machine abstaction
 -}
-module Computability.Model.Turing where
+module Math.Model.Turing where
 import Data.Delta
 import Data.State
 import Data.Sigma
