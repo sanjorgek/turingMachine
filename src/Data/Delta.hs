@@ -15,12 +15,12 @@ Map implementation, represent a partial function
 module Data.Delta
 (
 	-- * Delta
-	-- ** Determinist
+	-- ** Deterministic
 	-- *** Constructor
 	(:->:)(..)
 	-- *** Functions
 	,nextD
-	-- ** Not determinist
+	-- ** Not deterministic
 	-- *** Constructor
 	,(:>-:)(..)
 	-- * Transductor
