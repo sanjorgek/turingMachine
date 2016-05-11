@@ -5,7 +5,7 @@ name:                turingMachine
 -- PVP summary:      +-+------- breaking API changes
 --                   | | +----- non-breaking API additions
 --                   | | | +--- code changes with no API change
-version:             0.1.1.0
+version:             0.1.1.1
 synopsis:            An implementation of Turing Machine and Automaton
 description:         # Turing Machine Model
                      An implementation of Turing Machine and Automaton for 
@@ -39,7 +39,7 @@ cabal-version:       >=1.10
 
 source-repository head
   type:                git
-  location:            https://github.com/sanjorgek/turingMachine
+  location:            git@github.com:sanjorgek/turingMachine.git
 
 library
   exposed-modules:     Data.Delta
