@@ -7,14 +7,14 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-|
 Module      : Turing1T4W
-Description : Maquina de turing de cinta infinita
+Description : Two ways turing machine
 Copyright   : (c) Jorge Santiago Alvarez Cuadros, 2016
 License     : GPL-3
 Maintainer  : sanjorgek@ciencias.unam.mx
 Stability   : experimental
 Portability : portable
 
-Maquina de turing de cinta infinita
+Two ways turing machine
 -}
 module Math.Model.Turing.TwoWays where
 import Data.Delta
