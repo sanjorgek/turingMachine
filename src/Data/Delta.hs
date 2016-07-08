@@ -33,11 +33,24 @@ import Data.Monoid
 import Data.Foldable
 import qualified Data.Map.Lazy as Map
 
+{-|
+Deterministic Delta
+
+Maps a tuple, a state and a param, to a tuple, a state and a param.
+-}
 type (:->:) a p1 p2 = Map.Map (State a, p1) (State a, p2)
 
 nextD :: (Ord p1, Ord a) => (:->:) a p1 p2 -> (State a, p1) -> State a
 nextD dt k = if Map.member k dt then fst (dt Map.! k) else QE 
 
+{-|
+Non-Deterministic Delta
+
+Maps a tuple, a state and a param, to a tuple, a state list and a param.
+-}
 type (:>-:) a p1 p2 = Map.Map (State a, p1) ([State a], p2)
 
+{-|
+Map a tuple, a state and a param, to some output
+-}
 type (:*>:) a p o = Map.Map (State a, p) o

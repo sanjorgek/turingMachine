@@ -48,7 +48,7 @@ liftD xs = let
 	in Map.fromList (zip k r)
 
 -- |Stack machine only needs a delta and a init state
-data StackA a = S (Delta a) (State a)
+data StackA a = Stack (Delta a) (State a)
 
 {-|
 Executes a stack machine over a word
@@ -57,7 +57,7 @@ Executes a stack machine over a word
 True
 -}
 checkString::(Ord a) => StackA a -> Wd -> Bool
-checkString (S d s) ws = let
+checkString (Stack d s) ws = let
 		q = checkString' d s [z0] ws
 		f = not.isError
 	in f q

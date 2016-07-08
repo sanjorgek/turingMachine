@@ -20,15 +20,17 @@ module Math.Model.Automaton.Finite
 	-- *** Recognizer
 	Delta(..)
 	,liftD
-	-- ** Transducer
+	-- *** Transducer
 	,Lambda1(..)
 	,liftL1
 	,Lambda2(..)
 	,liftL2
 	-- ** Constructor
+	-- *** Recognizer
 	,FiniteA(..)
+	-- *** Transducer
 	,Transductor(..)
-	-- ** Function
+	-- ** Actions
 	,checkString
 	,translate
 	-- * Not deterministic
@@ -37,6 +39,7 @@ module Math.Model.Automaton.Finite
 	,liftDN
 	-- ** Constructor
 	,FiniteAN(..)
+	-- ** Actions
 	,checkStringN
 ) where
 import Data.State
@@ -67,8 +70,14 @@ liftD ds = let
 		qzs = zip (f zs) (repeat ())
 	in Map.fromList (zip xys qzs)
 
+{-|
+Transducer function
+-}
 type Lambda1 a = (:*>:) a () Symbol
 
+{-|
+Lift simple transducer function
+-}
 liftL1::(Ord a) => [(a, Symbol)] -> Lambda1 a
 liftL1 ds = let
 		(xs, ys) = unzip ds
@@ -76,8 +85,14 @@ liftL1 ds = let
 		nds = zip (zip (f xs) (repeat ())) ys
 	in Map.fromList nds
 
+{-|
+Transducer function with output at transition
+-}
 type Lambda2 a = (:*>:) a Symbol Symbol
 
+{-|
+Lift second transducer function
+-}
 liftL2::(Ord a) => [(a, Symbol, Symbol)] -> Lambda2 a
 liftL2 ds = let
 		(xs, ys, zs) = unzip3 ds
@@ -109,6 +124,13 @@ checkString (F d qF s) ws = let
 		checkString' _ q [] = q
 		checkString' dt q (x:xs) = checkString' dt (nextD dt (q,x)) xs
 
+{-|
+Transducer Autmaton, both types:
+
+1. Moore
+
+2. Mealy
+-}
 data Transductor a = 
 	Moore (Delta a) (Lambda1 a) (Final a) (State a) 
 	|Mealy (Delta a) (Lambda2 a) (Final a) (State a) deriving(Show, Eq)

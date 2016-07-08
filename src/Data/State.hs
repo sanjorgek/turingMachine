@@ -85,8 +85,6 @@ Tells if a state is final
 terminal :: (Eq a) => Final a -> State a -> Bool
 terminal qs q = q `elem` qs
 
--- |Verifica si el estado es de error, comparandolo con la definicion de 
--- estado de error
 {-|
 Tells if a state is a error state
 -}
