@@ -32,7 +32,7 @@ Symbol type are forced to be a monoid
 -}
 instance Monoid Symbol where
 	mempty = blank
-	mappend x y = chr (mod ((ord x)+(ord y)) (ord maxBound))
+	mappend x y = chr (mod (ord x + ord y) (ord maxBound))
 
 -- |Blank symbol
 blank::Symbol

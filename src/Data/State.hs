@@ -22,6 +22,8 @@ module Data.State
 ) where
 import Control.Applicative
 import Control.Monad
+import Data.Monoid
+import qualified Data.Foldable as F
 
 {-|
 Macine states are only a label, maybe a letter
@@ -66,7 +68,7 @@ instance Monoid a => Monoid (State a) where
 	m `mappend` QE = m
 	(Q a) `mappend` (Q b) = Q (a `mappend` b)
 
-instance Foldable State where
+instance F.Foldable State where
     foldr _ z QE = z
     foldr f z (Q x) = f x z
     foldl _ z QE = z
@@ -81,7 +83,7 @@ type Final a = [State a]
 Tells if a state is final
 -}
 terminal :: (Eq a) => Final a -> State a -> Bool
-terminal qs q = elem q qs
+terminal qs q = q `elem` qs
 
 -- |Verifica si el estado es de error, comparandolo con la definicion de 
 -- estado de error

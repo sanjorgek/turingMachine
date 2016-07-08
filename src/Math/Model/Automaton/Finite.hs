@@ -103,7 +103,7 @@ False
 checkString::(Ord a) => FiniteA a -> Wd -> Bool
 checkString (F d qF s) ws = let
 		q = checkString' d s ws
-		f y = ((not.isError) y)&&(terminal qF y)
+		f y = (not.isError) y && terminal qF y
 	in f q
 	where
 		checkString' _ q [] = q
@@ -158,11 +158,11 @@ Executes a non-deterministic automaton over a word, maybe overload your pc
 checkStringN::(Ord a) => FiniteAN a -> Wd -> Bool
 checkStringN (FN dn qF s) ws = let
 		qs = checkStringN' dn [s] ws
-		f y = ((not.isError) y)&&(terminal qF y)
-		g y = or (map f y)
+		f y = (not.isError) y && terminal qF y
+		g = any f
 	in g qs
 	where
 		check dt k = if Map.member k dt then dt Map.! k else ([QE], ())
-		mDelta dt lq a = (nub.concat.(map fst)) (map (\q -> check dt (q,a)) lq)
+		mDelta dt lq a = (nub.concatMap fst) (map (\q -> check dt (q,a)) lq)
 		checkStringN' _ qs [] = qs
 		checkStringN' dn qs (x:xs) = checkStringN' dn (mDelta dn qs x) xs

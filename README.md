@@ -1,7 +1,7 @@
 # Turing Machine Model
 An implementation of Turing Machine and Automaton for language theory
 
-## Models
+## Math Models
 ### Finite Automaton
 
 Finite State machine, with no memory.
@@ -15,3 +15,17 @@ Exist:
 Stack memory machine with states
 
 ### Turing Machine
+
+## Settings
+Init
+~~~bash
+$ cabal configure
+$ cabal build
+$ cabal check
+~~~
+Reload docs
+~~~bash
+$ cabal hscolour
+$ cabal haddock --hyperlink-source
+~~~
+

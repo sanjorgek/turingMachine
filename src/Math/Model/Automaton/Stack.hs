@@ -41,7 +41,7 @@ Takes a list of tuples and lift a Delta
 liftD::(Ord a) => [(a, Symbol, Symbol, a, [Symbol])]-> Delta a
 liftD xs = let
 		(as,bs,cs,ds,es) = unzip5 xs
-		f = map (Q)
+		f = map Q
 		p = zip bs cs
 		k = zip (f as) p
 		r = zip (f ds) es

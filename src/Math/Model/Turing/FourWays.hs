@@ -24,15 +24,16 @@ import Math.Model.Turing.TwoWays
 import Data.List
 import Data.Monoid
 import qualified Data.Foldable as Fold
+import Control.Applicative
 
 data Tracks a = Track [Tape a] (Tape a) [Tape a] deriving(Eq)
 
 instance (Show a) => Show (Tracks a) where
 	show (Track xts ts yts) = let 
-			f x = "--"++(show x)++"\n"
-			g x = "->"++(show x)++"\n"
-			h x y = (concat.(map x)) y
-		in (h f xts)++(g ts)++(h f yts)
+			f x = "--" ++ show x ++ "\n"
+			g x = "->" ++ show x ++ "\n"
+			h = concatMap
+		in h f xts ++ g ts ++ h f yts
 
 instance Functor Tracks where
 	fmap f (Track xts ts yts) = let 

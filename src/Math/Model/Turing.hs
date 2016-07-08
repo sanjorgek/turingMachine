@@ -57,15 +57,13 @@ type Delta a b c= (:->:) a b (b,c)
 type MDelta a b c = (:->:) a [b] ([b],[c])
 
 liftD::(Ord a, Ord b) => [(a,b,a,b,c)]->Delta a b c
-liftD ls = let
-		(as,bs,cs,ds,es) = unzip5 ls
-		f = map return
-		xs = zip (f as) bs
-		ys = zip (f cs) (zip ds es)
-	in Map.fromList (zip xs ys)
+liftD = liftDAux
 
 liftMD::(Ord a, Ord b) => [(a,[b],a,[b],[c])]->MDelta a b c
-liftMD ls = let
+liftMD = liftDAux
+	
+liftDAux:: (Ord a, Ord b) => [(a,b,a,b,c)]-> (:->:) a b (b,c)
+liftDAux ls = let
 		(as,bs,cs,ds,es) = unzip5 ls
 		f = map return
 		xs = zip (f as) bs

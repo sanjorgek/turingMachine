@@ -38,10 +38,7 @@ instance Applicative Tape where
 
 instance (Eq s, Monoid s) => Monoid (Tape s) where
 	mempty = T [] mempty []
-	mappend (T xs a ys) (T [] b zs) = if 
-			b==mempty 
-		then T xs a (ys++zs) 
-		else T xs a (ys++(b:zs))
+	mappend (T xs a ys) (T [] b zs) = T xs a ((++) ys (if b == mempty then zs else b : zs))
 	mappend t (T (x:xs) a ys) = if 
 			x==mempty 
 		then mappend t (T [] mempty (xs++(a:ys))) 
@@ -54,7 +51,7 @@ T "" 'w' "ord"
 -}
 instance Tapeable Tape Symbol where
 	getHead (T _ a _) = a
-	liftTape ws = Fold.foldMap pure ws
+	liftTape = Fold.foldMap pure
 
 instance Tapeable Tape [Symbol] where
 	getHead (T _ as _) = as
@@ -74,28 +71,28 @@ instance TuringM Tape Symbol LRS where
 instance TuringM Tape [Symbol] LRS where
 	moveHead S t = t
 	moveHead R (T xss as []) = let
-			f z = zipWith (\x y -> x++[y]) z
+			f = zipWith (\x y -> x++[y])
 			g x = genericReplicate (genericLength x) mempty
 		in T (f xss as) (g as) []
 	moveHead R (T xss as l@([]:yss)) = let
-			f z = zipWith (\x y -> x++[y]) z
+			f = zipWith (\x y -> x++[y])
 			g x = genericReplicate (genericLength x) mempty
 		in T (f xss as) (g as) l
 	moveHead R (T xss as yss) = let
 			f = map head
 			g = map tail
-			h z = zipWith (\x y -> x++[y]) z
+			h = zipWith (\x y -> x++[y])
 		in T (h xss as) (f yss) (g yss)
 	moveHead L (T [] as yss) = let
 			g x = genericReplicate (genericLength x) mempty
-			f x y = zipWith (:) x y
+			f = zipWith (:)
 		in T [] (g as) (f as yss)
 	moveHead L (T l@([]:xss) as yss) = let
-			f x y = zipWith (:) x y
+			f = zipWith (:)
 			g x = genericReplicate (genericLength x) mempty
 		in T l (g as) (f as yss)
 	moveHead L (T xss as yss) = let
 			f = map last
 			g = map init
-			h z = zipWith (:) z
+			h = zipWith (:)
 		in T (g yss) (f yss) (h as xss)
