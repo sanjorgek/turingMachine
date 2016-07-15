@@ -24,6 +24,7 @@ import Control.Applicative
 import Control.Monad
 import Data.Monoid
 import qualified Data.Foldable as F
+import qualified Data.Set as Set
 
 {-|
 Macine states are only a label, maybe a letter
@@ -77,13 +78,13 @@ instance F.Foldable State where
 {-|
 Final state represent a set of states which elements put end to computation
 -}
-type Final a = [State a]
+type Final a = Set.Set (State a)
 
 {-|
 Tells if a state is final
 -}
-terminal :: (Eq a) => Final a -> State a -> Bool
-terminal qs q = q `elem` qs
+terminal :: (Ord a) => Final a -> State a -> Bool
+terminal qs q = Set.member q qs
 
 {-|
 Tells if a state is a error state
