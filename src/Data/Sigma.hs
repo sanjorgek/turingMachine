@@ -21,6 +21,7 @@ module Data.Sigma
 ) where
 import Data.Monoid
 import Data.Char
+import qualified Data.Set as Set
 
 {-|
 Symbols are character, and with Unicode CharSet we have a big amount of them.
@@ -46,3 +47,5 @@ z0 = '\248'
 List symbol alias, Word are defined in Prelude
 -}
 type Wd = [Symbol]
+
+data Lang = Lang (Set.Set Symbol) [Wd]
