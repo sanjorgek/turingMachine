@@ -14,7 +14,7 @@ instance (Arbitrary a) => Arbitrary (State a) where
 
 terminalTest = describe "terminal" $ do
   prop "Not in" $
-    \x y -> (x == y) || not (terminal (Set.fromList [Q x]) ((Q y) :: State Int))
+    \x y -> (x == y) || not (terminal (Set.fromList [Q x]) (Q y :: State Int))
   prop "In" $
     \x -> terminal (Set.fromList [Q x]) (Q x:: State Int)
 

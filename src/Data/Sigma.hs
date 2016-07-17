@@ -1,6 +1,7 @@
 {-# OPTIONS_HADDOCK show-extensions #-}
 {-# OPTIONS_GHC -fno-warn-tabs #-}
 {-# LANGUAGE TypeSynonymInstances #-}
+{-# LANGUAGE FlexibleInstances #-}
 {-|
 Module      : Sigma
 Description : Alphabet and symbols
@@ -18,10 +19,15 @@ module Data.Sigma
 	,blank
 	,z0
 	,Wd(..)
+  ,Alphabet(..)
+  ,enumWord
+  ,closureAlph
 ) where
 import Data.Monoid
 import Data.Char
+import Data.List
 import qualified Data.Set as Set
+import qualified Data.Map.Lazy as Map
 
 {-|
 Symbols are character, and with Unicode CharSet we have a big amount of them.
@@ -48,4 +54,22 @@ List symbol alias, Word are defined in Prelude
 -}
 type Wd = [Symbol]
 
-data Lang = Lang (Set.Set Symbol) [Wd]
+instance Monoid Wd where
+  mempty = []
+  mappend = (++)
+  
+type Alphabet = Set.Set Symbol
+
+enumWord::Alphabet -> Wd -> Integer
+enumWord sig w = let 
+    sigL = Set.toList sig
+    n = genericLength sigL
+    map = Map.fromList (zip (Set.toList sig) [1..])
+    f [] = 0
+    f xs = (n * f (init xs))+(map Map.! last xs)
+  in f w
+
+closureAlph' sigL = map (:"") sigL ++ [x:ys | ys<-closureAlph' sigL, x<-sigL]
+
+closureAlph::Alphabet -> [Wd]
+closureAlph sig = "":closureAlph' (Set.toList sig)
