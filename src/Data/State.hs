@@ -33,7 +33,7 @@ data State a =
 	-- |State constructor
 	Q a 
 	-- |Error state
-	| QE deriving(Show, Eq, Ord)
+	| QE deriving(Show, Eq)
 
 -- |Same as Maybe
 instance Functor State where
@@ -52,16 +52,15 @@ instance Monad State where
 	QE >>= _ = QE
 	(Q q) >>= f = f q
 
--- |Same as Maybe
-instance (Enum a) => Enum (State a) where
-	toEnum n = if n<0 then QE else Q (toEnum n)
-	fromEnum QE = -1
-	fromEnum (Q a) = fromEnum a
-
 -- |In this differ with Maybe because this show a upper bounded order
 instance (Bounded a)=> Bounded (State a) where
 	minBound = Q minBound
 	maxBound = QE 
+  
+instance (Ord a) => Ord (State a) where
+  compare _ QE = LT
+  compare QE _ = GT
+  compare (Q a) (Q b) = compare a b
 
 instance Monoid a => Monoid (State a) where
 	mempty = QE

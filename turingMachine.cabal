@@ -5,7 +5,7 @@ name:                turingMachine
 -- PVP summary:      +-+------- breaking API changes
 --                   | | +----- non-breaking API additions
 --                   | | | +--- code changes with no API change
-version:             0.1.3.1
+version:             0.1.4.0
 synopsis:            An implementation of Turing Machine and Automaton
 description:         An implementation of Turing Machine and Automaton for 
                      language theory
@@ -51,6 +51,18 @@ test-suite state
   type:                exitcode-stdio-1.0
   hs-source-dirs:      test
   main-is:             StateTest.hs
+  --other-modules:       
+  build-depends:       base
+                       , hspec
+                       , QuickCheck
+                       , containers
+                       , turingMachine
+  default-language:    Haskell2010
+  
+test-suite sigma
+  type:                exitcode-stdio-1.0
+  hs-source-dirs:      test
+  main-is:             SigmaTest.hs
   --other-modules:       
   build-depends:       base
                        , hspec

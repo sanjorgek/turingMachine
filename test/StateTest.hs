@@ -20,4 +20,4 @@ terminalTest = describe "terminal" $ do
 
 main::IO ()
 main = hspec $
-	describe "Data.State.hs" terminalTest
+	describe "Data.State" terminalTest

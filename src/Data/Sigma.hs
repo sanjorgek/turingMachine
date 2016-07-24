@@ -39,7 +39,6 @@ Symbol type are forced to be a monoid
 -}
 instance Monoid Symbol where
 	mempty = blank
-	mappend x y = chr (mod (ord x + ord y) (ord maxBound))
 
 -- |Blank symbol
 blank::Symbol
@@ -54,12 +53,18 @@ List symbol alias, Word are defined in Prelude
 -}
 type Wd = [Symbol]
 
+-- |Simple word monoid, holds all properties
 instance Monoid Wd where
   mempty = []
   mappend = (++)
-  
+
+-- |An alphabet is a set of symbols
 type Alphabet = Set.Set Symbol
 
+{-|
+For every alphabet there is a function __h__ that maps one symbol to one natural.
+For every __h__ function there is a function that enumerete every words in that alphabet
+-}
 enumWord::Alphabet -> Wd -> Integer
 enumWord sig w = let 
     sigL = Set.toList sig
@@ -71,5 +76,8 @@ enumWord sig w = let
 
 closureAlph' sigL = map (:"") sigL ++ [x:ys | ys<-closureAlph' sigL, x<-sigL]
 
+{-|
+Gives the Kleene Closure for all alphabets. closureAlph is a infinite list of words.
+-}
 closureAlph::Alphabet -> [Wd]
 closureAlph sig = "":closureAlph' (Set.toList sig)

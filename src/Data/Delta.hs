@@ -23,6 +23,8 @@ module Data.Delta
 	-- ** Not deterministic
 	-- *** Constructor
 	,(:>-:)(..)
+  -- *** Functions
+  ,nextND
 	-- * Transductor
 	-- ** Constructor
 	,(:*>:)(..)
@@ -40,6 +42,9 @@ Maps a tuple, a state and a param, to a tuple, a state and a param.
 -}
 type (:->:) a p1 p2 = Map.Map (State a, p1) (State a, p2)
 
+{-|
+Next state function for deterministic delta
+-}
 nextD :: (Ord p1, Ord a) => (:->:) a p1 p2 -> (State a, p1) -> State a
 nextD dt k = if Map.member k dt then fst (dt Map.! k) else QE 
 
@@ -49,6 +54,12 @@ Non-Deterministic Delta
 Maps a tuple, a state and a param, to a tuple, a state list and a param.
 -}
 type (:>-:) a p1 p2 = Map.Map (State a, p1) ([State a], p2)
+
+{-|
+Next state function for non-deterministic delta
+-}
+nextND :: (Ord p1, Ord a) => (:>-:) a p1 p2 -> (State a, p1) -> [State a]
+nextND dt k = if Map.member k dt then fst (dt Map.! k) else [QE] 
 
 {-|
 Map a tuple, a state and a param, to some output
