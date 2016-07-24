@@ -52,5 +52,9 @@ test-suite state
   hs-source-dirs:      test
   main-is:             StateTest.hs
   --other-modules:       
-  build-depends:       base, hspec, QuickCheck, containers, turingMachine
+  build-depends:       base
+                       , hspec
+                       , QuickCheck
+                       , containers
+                       , turingMachine
   default-language:    Haskell2010
