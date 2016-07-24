@@ -15,32 +15,25 @@ reads a symbol
 -}
 module Math.Model.Automaton.Finite
 (
-	-- * Deterministic
-	-- ** Function 
-	-- *** Recognizer
+	-- * Recognizer
+	-- ** Deterministic
 	Delta(..)
-	,liftD
-	-- *** Transducer
-	,Lambda1(..)
-	,liftL1
-	,Lambda2(..)
-	,liftL2
-	-- ** Constructor
-	-- *** Recognizer
 	,FiniteA(..)
-	-- *** Transducer
-	,Transductor(..)
-	-- ** Actions
 	,checkString
-	,translate
-	-- * Not deterministic
-	-- ** Function
+	-- ** Not deterministic
 	,DeltaN(..)
-	,liftDN
-	-- ** Constructor
 	,FiniteAN(..)
-	-- ** Actions
 	,checkStringN
+	-- * Transducer
+	,Lambda1(..)
+	,Lambda2(..)
+	,Transductor(..)
+	,translate
+  -- * Auxiliar functions
+	,liftD
+	,liftL1
+	,liftL2
+	,liftDN
 ) where
 import Data.State
 import Data.Sigma
@@ -52,8 +45,7 @@ import qualified Data.Map.Lazy as Map
 import qualified Data.Foldable as Fold
 
 {-|
-Transition function hava a State and a Symbol by domain to decide next state in 
-machine
+Transition function that for every pair, a State and a Symbol by domain, decide next state in machine
 -}
 type Delta a = (:->:) a Symbol ()
 

@@ -62,8 +62,9 @@ instance Monoid Wd where
 type Alphabet = Set.Set Symbol
 
 {-|
-For every alphabet there is a function __h__ that maps one symbol to one natural.
-For every __h__ function there is a function that enumerete every words in that alphabet
+For every alphabet there is a function __h__ that maps one symbol to one 
+natural. For every __h__ function there is a function that enumerete every 
+words in that alphabet
 -}
 enumWord::Alphabet -> Wd -> Integer
 enumWord sig w = let 
@@ -77,7 +78,8 @@ enumWord sig w = let
 closureAlph' sigL = map (:"") sigL ++ [x:ys | ys<-closureAlph' sigL, x<-sigL]
 
 {-|
-Gives the Kleene Closure for all alphabets. closureAlph is a infinite list of words.
+Gives the Kleene Closure for all alphabets. closureAlph is a infinite list of 
+words.
 -}
 closureAlph::Alphabet -> [Wd]
 closureAlph sig = "":closureAlph' (Set.toList sig)

@@ -70,3 +70,15 @@ test-suite sigma
                        , containers
                        , turingMachine
   default-language:    Haskell2010
+
+test-suite finite
+  type:                exitcode-stdio-1.0
+  hs-source-dirs:      test
+  main-is:             FiniteTest.hs
+  --other-modules:       
+  build-depends:       base
+                       , hspec
+                       , QuickCheck
+                       , containers
+                       , turingMachine
+  default-language:    Haskell2010
