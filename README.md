@@ -15,24 +15,3 @@ Exist:
 Stack memory machine with states
 
 ### Turing Machine
-
-## Settings
-Init
-~~~bash
-$ cabal configure
-$ cabal build
-$ cabal check
-$ hlint .
-$ cabal sdist
-~~~
-Reload docs
-~~~bash
-$ cabal hscolour
-$ cabal haddock --hyperlink-source
-~~~
-
-And upload to git
-~~~
-$ git tag -a vX.X COMMIT
-$ git push origin --tags
-~~~
