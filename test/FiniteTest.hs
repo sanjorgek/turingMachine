@@ -10,7 +10,7 @@ import qualified Data.Set as Set
 
 pairWord = F (liftD [(1,'0',1),(1,'1',2),(2,'0',2),(2,'1',1)]) (Set.fromList [Q 2]) (Q 2)
 
-finiteAut = describe "Finite automaton check" $ do
+finiteAut = describe "Finite automaton check" $
   it "pair of one's" $ do
     checkString pairWord "" `shouldBe` True
     checkString pairWord "00000" `shouldBe` True

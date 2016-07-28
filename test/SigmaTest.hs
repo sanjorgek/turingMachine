@@ -8,7 +8,7 @@ import Data.Sigma
 import qualified Data.Set as Set
 
 enumWordTest = describe "enumWordTest" $ do
-  alpF <- return (enumWord (Set.fromList ['a','b','c']))
+  let alpF = enumWord (Set.fromList ['a','b','c'])
   it "Empty word and empty alphabet" $
     enumWord Set.empty [] `shouldBe` 0
   it "Empty word and non-empty alphabet" $  
