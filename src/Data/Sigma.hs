@@ -15,13 +15,17 @@ Alphabet and symbols of languaje
 -}
 module Data.Sigma 
 (
+  -- * Symbols
 	Symbol(..)
 	,blank
 	,z0
 	,Wd(..)
+  -- * Alphabets
   ,Alphabet(..)
   ,enumWord
   ,closureAlph
+  ,lessKWords
+  ,kWords
 ) where
 import Data.Monoid
 import Data.Char
@@ -83,3 +87,22 @@ words.
 -}
 closureAlph::Alphabet -> [Wd]
 closureAlph sig = "":closureAlph' (Set.toList sig)
+
+{-|
+For some alphabet __S__ and a natural number __n__ take all words of length __n__ or less
+-}
+lessKWords::Alphabet -> Integer -> [Wd]
+lessKWords sig k = let
+    f x y = genericLength y <= x
+  in
+    takeWhile (f k) (closureAlph sig)
+
+{-|
+For some alphabet __S__ and a natural number __n__ take all words of length __n__ 
+-}
+kWords::Alphabet -> Integer -> [Wd]
+kWords sig k = let
+    f x y = genericLength y == x
+    g x y = genericLength y < x
+  in
+    takeWhile (f k) (dropWhile (g k) (closureAlph sig))

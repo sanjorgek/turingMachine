@@ -30,10 +30,15 @@ module Math.Model.Automaton.Finite
 	,Transductor(..)
 	,translate
   -- * Auxiliar functions
+  ,getAlphabet
+  ,finalState
+  ,finalsStates
+  -- ** Create deltas and lambdas
 	,liftD
 	,liftL1
 	,liftL2
 	,liftDN
+  -- ** Mininmize delta
 ) where
 import Data.State
 import Data.Sigma
@@ -41,6 +46,7 @@ import Data.Delta
 import Data.List
 import Data.Monoid
 import Control.Monad
+import qualified Data.Set as Set
 import qualified Data.Map.Lazy as Map
 import qualified Data.Foldable as Fold
 
@@ -50,7 +56,7 @@ Transition function that for every pair, a State and a Symbol by domain, decide 
 type Delta a = (:->:) a Symbol ()
 
 {-|
-Lift a list of 3-tuples in a Delta
+Lift a list of 3-tuples to a Delta
 
 >>>let delta = liftD [(0,'0',0),(0,'1',1),(1,'0',1),(1,'1',0)]
 -}
@@ -65,10 +71,10 @@ liftD ds = let
 {-|
 Transition function that for every pair, a State and a Symbol by domain, decide next list of states in machine
 -}
-type DeltaN a = (:>-:) a Symbol ()
+type DeltaN a = (:-<:) a Symbol ()
 
 {-|
-Lift a list of 3-tuples in a non deterministic delta
+Lift a list of 3-tuples to a non deterministic delta
 
 >>>let deltaN = liftDN [(0,'0',[0]),(0,'1',[1]),(1,'0',[1]),(1,'1',[0])]
 -}
@@ -114,10 +120,36 @@ liftL2 ds = let
 Finite deterministic Automaton
 -}
 data FiniteA a = 
-	-- |>>>let autFin = F delta [Q 0] (Q 0)
+	-- |>>>let autFin = F delta (Set.fromList [Q 0]) (Q 0)
 	F (Delta a) (Final a) (State a)
-	-- |>>>let autFinN = FN deltaN (terminal [Q 0]) (Q 0)
+	-- |>>>let autFinN = FN deltaN (Set.fromList [Q 0]) (Q 0)
 	| FN (DeltaN a) (Final a) (State a) deriving(Show,Eq)
+
+{-|
+Gets alphabet for some finite automaton
+-}
+getAlphabet:: FiniteA a -> Alphabet
+getAlphabet (F d _ _) = let
+    keys = Map.keys d
+    (_,xs) = unzip keys
+  in
+    Set.fromList xs
+getAlphabet (FN dn _ _) = let
+    keys = Map.keys dn
+    (_,xs) = unzip keys
+  in
+    Set.fromList xs
+    
+finalState::(Ord a) => Delta a -> State a -> Wd -> State a
+finalState _ q [] = q
+finalState dt q (x:xs) = finalState dt (nextD dt (q,x)) xs
+
+finalsStates::(Ord a) => DeltaN a -> [State a] -> Wd -> [State a]
+finalsStates _ qs [] = qs
+finalsStates dn qs (x:xs) = let
+    mDelta dt lq a = (nub.concatMap (\q -> nextND dt (q,a))) lq
+  in
+    finalsStates dn (mDelta dn qs x) xs
 
 {-|
 Executes a automaton over a word
@@ -129,22 +161,14 @@ False
 -}
 checkString::(Ord a) => FiniteA a -> Wd -> Bool
 checkString (F d qF s) ws = let
-		q = checkString' d s ws
+		q = finalState d s ws
 		f y = (not.isError) y && terminal qF y
 	in f q
-	where
-		checkString' _ q [] = q
-		checkString' dt q (x:xs) = checkString' dt (nextD dt (q,x)) xs
 checkString (FN dn qF s) ws = let
-		qs = checkStringN' dn [s] ws
+		qs = finalsStates dn [s] ws
 		f y = (not.isError) y && terminal qF y
 		g = any f
 	in g qs
-	where
-		check dt k = if Map.member k dt then dt Map.! k else ([QE], ())
-		mDelta dt lq a = (nub.concatMap fst) (map (\q -> check dt (q,a)) lq)
-		checkStringN' _ qs [] = qs
-		checkStringN' dn qs (x:xs) = checkStringN' dn (mDelta dn qs x) xs
 
 {-|
 Transducer Autmaton, both types:
@@ -175,3 +199,7 @@ translate (Mealy d l qF s) ws = let
 		translate' _ _ QE xs ys = (QE, "Error: \nCadena:"++xs++"\nResp parcial: "++ys)
 		translate' _ _ q [] xs = (q, xs)
 		translate' dt lm q (x:xs) ys = translate' dt lm (nextD dt (q, x)) xs (ys++[lm Map.! (q,x)])
+{-
+kDistinguishable::FiniteA a -> State a -> State a -> Integer -> Bool,Integer
+kDistinguishable 
+-}

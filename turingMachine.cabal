@@ -2,7 +2,7 @@ name:                turingMachine
 -- PVP summary:      +-+------- breaking API changes
 --                   | | +----- non-breaking API additions
 --                   | | | +--- code changes with no API change
-version:             0.2.0.0
+version:             1.0.0.0
 synopsis:            An implementation of Turing Machine and Automaton
 description:         An implementation of Turing Machine and Automaton for 
                      language theory
