@@ -28,12 +28,15 @@ module Data.Delta
 	-- * Transductor
 	-- ** Constructor
 	,(:*>:)(..)
+  -- * Auxiliar functions
+  ,getFirstParam
+  ,getSecondParam
 ) where
 import Data.State
 import Control.Applicative
 import Data.Monoid
 import Data.Foldable
-import qualified Data.Map.Lazy as Map
+import qualified Data.Map.Strict as Map
 
 {-|
 Deterministic Delta
@@ -65,3 +68,9 @@ nextND dt k = if Map.member k dt then fst (dt Map.! k) else [QE]
 Map a tuple, a state and a param, to some output
 -}
 type (:*>:) a p o = Map.Map (State a, p) o
+
+getFirstParam:: Map.Map (a, b) a1 -> [b]
+getFirstParam = snd . unzip . Map.keys
+
+getSecondParam::Map.Map k (a, b) -> [b]
+getSecondParam = snd . unzip . Map.elems

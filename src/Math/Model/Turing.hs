@@ -21,7 +21,7 @@ import Data.Sigma
 import Data.List
 import Data.Monoid
 import Control.Applicative
-import qualified Data.Map.Lazy as Map
+import qualified Data.Map.Strict as Map
 import qualified Data.Foldable as Fold
 
 class Ways a where

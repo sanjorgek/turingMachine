@@ -47,7 +47,7 @@ import Data.List
 import Data.Monoid
 import Control.Monad
 import qualified Data.Set as Set
-import qualified Data.Map.Lazy as Map
+import qualified Data.Map.Strict as Map
 import qualified Data.Foldable as Fold
 
 {-|
@@ -129,16 +129,8 @@ data FiniteA a =
 Gets alphabet for some finite automaton
 -}
 getAlphabet:: FiniteA a -> Alphabet
-getAlphabet (F d _ _) = let
-    keys = Map.keys d
-    (_,xs) = unzip keys
-  in
-    Set.fromList xs
-getAlphabet (FN dn _ _) = let
-    keys = Map.keys dn
-    (_,xs) = unzip keys
-  in
-    Set.fromList xs
+getAlphabet (F d _ _) = Set.fromList (getFirstParam d)
+getAlphabet (FN dn _ _) = Set.fromList (getFirstParam dn)
     
 finalState::(Ord a) => Delta a -> State a -> Wd -> State a
 finalState _ q [] = q

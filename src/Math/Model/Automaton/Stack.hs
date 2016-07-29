@@ -21,7 +21,7 @@ module Math.Model.Automaton.Stack
 ) where
 import Data.List
 import Data.Monoid
-import qualified Data.Map.Lazy as Map
+import qualified Data.Map.Strict as Map
 import qualified Data.Foldable as Fold
 import Data.Delta
 import Data.State
