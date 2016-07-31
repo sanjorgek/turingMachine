@@ -206,7 +206,7 @@ reachableStates1 alp d xs = let
     if nqs==xs then nqs else reachableStates1 alp d nqs
 
 reachableStates2 alp d xs = let
-    qs = (xs ++ (concat [nextND d (y,x) | x<-alp, y<-xs]))\\[QE]
+    qs = (xs ++ concat [nextND d (y,x) | x<-alp, y<-xs])\\[QE]
     nqs = nub qs
   in
     if nqs==xs then nqs else reachableStates2 alp d nqs 
@@ -217,18 +217,59 @@ Gets a delta with all reachable states from initial state.
 -}
 reachableDelta::(Ord a) => FiniteA a -> FiniteA a
 reachableDelta af@(F d sf si) = let
+    allState = getStateDomain d  
     alp = (Set.toList . getAlphabet) af
     qs = reachableStates1 alp d [si]
-    allState = getStateDomain d
     ks = [(x,y) | x<-qs, y<-alp]
     nDelta = foldl (\x k -> Map.insert k (nextD d k,()) x) Map.empty ks
   in
     F nDelta sf si
 reachableDelta afn@(FN dn sf si) = let
+    allState = getStateDomain dn  
     alp = (Set.toList . getAlphabet) afn
     qs = reachableStates2 alp dn [si]
-    allState = getStateDomain dn
     ks = [(x,y) | x<-qs, y<-alp]
     nDelta = foldl (\x k -> Map.insert k (nextND dn k,()) x) Map.empty ks
   in
     FN nDelta sf si
+    
+fstPartition sf qs = let
+    (xs,ys) = partition (terminal sf) qs
+  in
+    nub [xs, ys] \\ [[]]
+
+samePartition [] _ _ = False
+samePartition (x:xs) q1 q2
+  |elem q1 x && elem q2 x = True
+  |otherwise = samePartition xs q1 q2
+
+reachState alp d q = [nextD d (q, a) | a<- alp]
+
+--distinguishable::(Ord a) => [Symbol] -> Delta a -> [[State a]] -> [State a] -> [[State a]]
+distinguishable alp d pss ps@(q:qs) = let
+    nqs = reachState alp d q
+    f = zipWith (samePartition pss)
+    g x = f (reachState alp d x) nqs
+    (xs,ys) = partition (and . g) ps
+  in
+    nub [xs, ys] \\ [[]]
+    
+lDistinguishable alp d pss = let
+    g = distinguishable alp d pss
+    f = (nub . concatMap g)
+    npss = f pss
+  in if npss == pss then pss else lDistinguishable alp d npss
+    
+equivDelta::(Ord a) => FiniteA a -> FiniteA a
+equivDelta af@(F d sf si) = let
+    allState = getStateDomain d
+    alp = (Set.toList . getAlphabet) af    
+    p0 = fstPartition sf allState
+    qss = lDistinguishable alp d p0
+    f (ps:pss) e = if elem e ps then head ps else f pss e
+    f [] _ = QE
+    ks = [(x,y) | x<-(map head qss), y<-alp]
+    nDelta = foldl (\x k -> Map.insert k (f qss (nextD d k), ()) x) Map.empty ks
+  in
+    F nDelta (Set.map (f qss) sf) si
+    
