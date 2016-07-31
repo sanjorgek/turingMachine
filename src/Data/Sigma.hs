@@ -17,7 +17,7 @@ module Data.Sigma
 (
   -- * Symbols
 	Symbol(..)
-  ,Epsilon
+  ,Epsilon(..)
 	,blank
 	,Wd(..)
   -- * Alphabets
@@ -38,7 +38,7 @@ Symbols are character, and with Unicode CharSet we have a big amount of them.
 -}
 type Symbol = Char
 
-data Epsilon = Epsilon deriving(Show, Eq)
+data Epsilon = Epsilon deriving(Show, Ord, Eq)
 
 {-|
 Symbol type are forced to be a monoid
