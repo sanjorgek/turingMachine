@@ -15,7 +15,7 @@ reads a symbol
 -}
 module Math.Model.Automaton.Finite
 (
-	-- * Recognizer
+  -- * Recognizer
   -- ** Functions
 	Delta(..)
 	,DeltaN(..) 
@@ -198,19 +198,37 @@ translate (Mealy d l qF s) ws = let
 		translate' _ _ QE xs ys = (QE, "Error: \nCadena:"++xs++"\nResp parcial: "++ys)
 		translate' _ _ q [] xs = (q, xs)
 		translate' dt lm q (x:xs) ys = translate' dt lm (nextD dt (q, x)) xs (ys++[lm Map.! (q,x)])
-    
-reachableStates alp d xs = let
-    qs = xs ++ [nextD d (y,x) | x<-alp, y<-xs]
+
+reachableStates1 alp d xs = let
+    qs = (xs ++ [nextD d (y,x) | x<-alp, y<-xs])\\[QE]
     nqs = nub qs
   in
-    if nqs==xs then nqs else reachableStates alp d nqs    
+    if nqs==xs then nqs else reachableStates1 alp d nqs
 
---reachableDelta::(Ord a) => FiniteA a -> FiniteA a
+reachableStates2 alp d xs = let
+    qs = (xs ++ (concat [nextND d (y,x) | x<-alp, y<-xs]))\\[QE]
+    nqs = nub qs
+  in
+    if nqs==xs then nqs else reachableStates2 alp d nqs 
+
+{-|
+Minimaize a delta for some finite automaton.
+Gets a delta with all reachable states from initial state.
+-}
+reachableDelta::(Ord a) => FiniteA a -> FiniteA a
 reachableDelta af@(F d sf si) = let
     alp = (Set.toList . getAlphabet) af
-    qs = reachableStates alp d [si]
+    qs = reachableStates1 alp d [si]
     allState = getStateDomain d
-    ks = [(x,y) | x<-(allState \\ qs), y<-alp]
-    nDelta = foldl (\x k -> Map.delete k x) d ks
+    ks = [(x,y) | x<-qs, y<-alp]
+    nDelta = foldl (\x k -> Map.insert k (nextD d k,()) x) Map.empty ks
   in
     F nDelta sf si
+reachableDelta afn@(FN dn sf si) = let
+    alp = (Set.toList . getAlphabet) afn
+    qs = reachableStates2 alp dn [si]
+    allState = getStateDomain dn
+    ks = [(x,y) | x<-qs, y<-alp]
+    nDelta = foldl (\x k -> Map.insert k (nextND dn k,()) x) Map.empty ks
+  in
+    FN nDelta sf si
