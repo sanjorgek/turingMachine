@@ -17,8 +17,8 @@ module Data.Sigma
 (
   -- * Symbols
 	Symbol(..)
+  ,Epsilon
 	,blank
-	,z0
 	,Wd(..)
   -- * Alphabets
   ,Alphabet(..)
@@ -38,6 +38,8 @@ Symbols are character, and with Unicode CharSet we have a big amount of them.
 -}
 type Symbol = Char
 
+data Epsilon = Epsilon deriving(Show, Eq)
+
 {-|
 Symbol type are forced to be a monoid
 -}
@@ -47,10 +49,6 @@ instance Monoid Symbol where
 -- |Blank symbol
 blank::Symbol
 blank = '\164'
-
--- |Initial symbol for stack
-z0::Symbol
-z0 = '\248'
 
 {-|
 List symbol alias, Word are defined in Prelude
