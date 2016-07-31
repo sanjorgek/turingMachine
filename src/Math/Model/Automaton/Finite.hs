@@ -135,6 +135,10 @@ getAlphabet:: FiniteA a -> Alphabet
 getAlphabet (F d _ _) = Set.fromList (getFirstParam d)
 getAlphabet (FN dn _ _) = Set.fromList (getFirstParam dn)
 
+getAlphabetList::FiniteA a -> [Symbol]
+getAlphabetList (F d _ _) = getFirstParam d
+getAlphabetList (FN dn _ _) = getFirstParam dn
+
 {-|
 For some delta, an initial state anf a word returns final state for that word
 -}
@@ -192,14 +196,14 @@ translate (Moore d l qF s) ws = let
 	where
 		translate' _ _ QE xs ys = (QE, "Error: \nCadena:"++xs++"\nResp parcial: "++ys)
 		translate' _ _ q [] xs = (q, xs)
-		translate' dt lm q (y:ys) xs = translate' dt lm (nextD dt (q,y)) ys (xs++[lm Map.! (q, ())])
+		translate' dt lm q (y:ys) xs = translate' dt lm (nextD dt (q,y)) ys (xs++[nextT lm (q, ())])
 translate (Mealy d l qF s) ws = let
 		(q, w) = translate' d l s ws []
 	in w
 	where 
 		translate' _ _ QE xs ys = (QE, "Error: \nCadena:"++xs++"\nResp parcial: "++ys)
 		translate' _ _ q [] xs = (q, xs)
-		translate' dt lm q (x:xs) ys = translate' dt lm (nextD dt (q, x)) xs (ys++[lm Map.! (q,x)])
+		translate' dt lm q (x:xs) ys = translate' dt lm (nextD dt (q, x)) xs (ys++[nextT lm (q,x)])
 
 reachableStates1 alp d xs = let
     qs = (xs ++ [nextD d (y,x) | x<-alp, y<-xs])\\[QE]
@@ -220,7 +224,7 @@ Gets a delta with all reachable states from initial state.
 reachableDelta::(Ord a) => FiniteA a -> FiniteA a
 reachableDelta af@(F d sf si) = let
     allState = getStateDomain d  
-    alp = (Set.toList . getAlphabet) af
+    alp = getAlphabetList af
     qs = reachableStates1 alp d [si]
     ks = [(x,y) | x<-qs, y<-alp]
     nDelta = foldl (\x k -> Map.insert k (nextD d k,()) x) Map.empty ks
@@ -228,7 +232,7 @@ reachableDelta af@(F d sf si) = let
     F nDelta (Set.intersection sf (Set.fromList qs)) si
 reachableDelta afn@(FN dn sf si) = let
     allState = getStateDomain dn  
-    alp = (Set.toList . getAlphabet) afn
+    alp = getAlphabetList afn
     qs = reachableStates2 alp dn [si]
     ks = [(x,y) | x<-qs, y<-alp]
     nDelta = foldl (\x k -> Map.insert k (nextND dn k,()) x) Map.empty ks
@@ -283,7 +287,7 @@ Delete redundant states and their transitions, if a state is equivalent to anoth
 distinguishableDelta::(Ord a) => FiniteA a -> FiniteA a
 distinguishableDelta af@(F d sf si) = let
     allState = getStateDomain d
-    alp = (Set.toList . getAlphabet) af    
+    alp = getAlphabetList af    
     p0 = fstPartition sf allState
     qss = lDistinguishable alp d p0
     f (ps:pss) e = if e `elem` ps then head ps else f pss e
@@ -294,7 +298,7 @@ distinguishableDelta af@(F d sf si) = let
     F nDelta (Set.map (f qss) sf) si
 distinguishableDelta afn@(FN dn sf si) = let
     allState = getStateDomain dn
-    alp = (Set.toList . getAlphabet) afn
+    alp = getAlphabetList afn
     p0 = fstPartition sf allState
     qss = lDistinguishable2 alp dn p0
     f (ps:pss) e = if e `elem` ps then head ps else f pss e

@@ -28,6 +28,8 @@ module Data.Delta
 	-- * Transductor
 	-- ** Constructor
 	,(:*>:)(..)
+  -- ** Functions
+  ,nextT
   -- * Auxiliar functions
   ,getFirstParam
   ,getSecondParam
@@ -35,6 +37,7 @@ module Data.Delta
   ,getStateRange
 ) where
 import Data.State
+import Data.Sigma
 import Data.List
 import Control.Applicative
 import Data.Monoid
@@ -71,6 +74,12 @@ nextND dt k = if Map.member k dt then fst (dt Map.! k) else [QE]
 Map a tuple, a state and a param, to some output
 -}
 type (:*>:) a p o = Map.Map (State a, p) o
+
+{-|
+For simple map with Chars range
+-}
+nextT :: (Ord p1, Ord a) => (:*>:) a p1 Symbol -> (State a, p1) -> Symbol
+nextT dt k = if Map.member k dt then dt Map.! k else '\0' 
 
 {-|
 Gets all params at domain, for (:->:) and (:-<:)
