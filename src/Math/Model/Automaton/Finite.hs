@@ -131,11 +131,17 @@ Gets alphabet for some finite automaton
 getAlphabet:: FiniteA a -> Alphabet
 getAlphabet (F d _ _) = Set.fromList (getFirstParam d)
 getAlphabet (FN dn _ _) = Set.fromList (getFirstParam dn)
-    
+
+{-|
+For some delta, an initial state anf a word returns final state for that word
+-}
 finalState::(Ord a) => Delta a -> State a -> Wd -> State a
 finalState _ q [] = q
 finalState dt q (x:xs) = finalState dt (nextD dt (q,x)) xs
 
+{-|
+Same as finalState but work with no deterministic delta
+-}
 finalsStates::(Ord a) => DeltaN a -> [State a] -> Wd -> [State a]
 finalsStates _ qs [] = qs
 finalsStates dn qs (x:xs) = let

@@ -31,6 +31,8 @@ module Data.Delta
   -- * Auxiliar functions
   ,getFirstParam
   ,getSecondParam
+  ,getStateDomain
+  ,getStateRange
 ) where
 import Data.State
 import Control.Applicative
@@ -74,3 +76,9 @@ getFirstParam = snd . unzip . Map.keys
 
 getSecondParam::Map.Map k (a, b) -> [b]
 getSecondParam = snd . unzip . Map.elems
+
+getStateDomain:: Map.Map (a, b) a1 -> [a]
+getStateDomain = fst . unzip . Map.keys
+
+getStateRange::Map.Map k (a, b) -> [a]
+getSecondParam = fst . unzip . Map.elems
