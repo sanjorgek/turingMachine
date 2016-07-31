@@ -3,7 +3,7 @@
 {-# LANGUAGE TypeOperators #-}
 {-|
 Module      : Delta
-Description : Implementacion de un mapeo
+Description : Partial functions
 Copyright   : (c) Jorge Santiago Alvarez Cuadros, 2016
 License     : GPL-3
 Maintainer  : sanjorgek@ciencias.unam.mx
@@ -35,6 +35,7 @@ module Data.Delta
   ,getStateRange
 ) where
 import Data.State
+import Data.List
 import Control.Applicative
 import Data.Monoid
 import Data.Foldable
@@ -71,14 +72,26 @@ Map a tuple, a state and a param, to some output
 -}
 type (:*>:) a p o = Map.Map (State a, p) o
 
-getFirstParam:: Map.Map (a, b) a1 -> [b]
-getFirstParam = snd . unzip . Map.keys
+{-|
+Gets all params at domain, for (:->:) and (:-<:)
+-}
+getFirstParam::(Eq b) => Map.Map (a, b) a1 -> [b]
+getFirstParam = nub . snd . unzip . Map.keys
 
-getSecondParam::Map.Map k (a, b) -> [b]
-getSecondParam = snd . unzip . Map.elems
+{-|
+Gets all params at range, for (:->:) and (:-<:)
+-}
+getSecondParam::(Eq b) => Map.Map k (a, b) -> [b]
+getSecondParam = nub . snd . unzip . Map.elems
 
-getStateDomain:: Map.Map (a, b) a1 -> [a]
-getStateDomain = fst . unzip . Map.keys
+{-|
+Gets all states at domain, for (:->:) and (:-<:)
+-}
+getStateDomain::(Eq a) => Map.Map (a, b) a1 -> [a]
+getStateDomain = nub . fst . unzip . Map.keys
 
-getStateRange::Map.Map k (a, b) -> [a]
-getSecondParam = fst . unzip . Map.elems
+{-|
+Gets all params at range, for (:->:) and (:-<:)
+-}
+getStateRange::(Eq a) => Map.Map k (a, b) -> [a]
+getStateRange = nub . fst . unzip . Map.elems

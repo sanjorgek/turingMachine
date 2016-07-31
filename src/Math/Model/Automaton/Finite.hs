@@ -39,6 +39,7 @@ module Math.Model.Automaton.Finite
 	,liftL2
 	,liftDN
   -- ** Mininmize delta
+  ,reachableDelta
 ) where
 import Data.State
 import Data.Sigma
@@ -197,7 +198,19 @@ translate (Mealy d l qF s) ws = let
 		translate' _ _ QE xs ys = (QE, "Error: \nCadena:"++xs++"\nResp parcial: "++ys)
 		translate' _ _ q [] xs = (q, xs)
 		translate' dt lm q (x:xs) ys = translate' dt lm (nextD dt (q, x)) xs (ys++[lm Map.! (q,x)])
-{-
-kDistinguishable::FiniteA a -> State a -> State a -> Integer -> Bool,Integer
-kDistinguishable 
--}
+    
+reachableStates alp d xs = let
+    qs = xs ++ [nextD d (y,x) | x<-alp, y<-xs]
+    nqs = nub qs
+  in
+    if nqs==xs then nqs else reachableStates alp d nqs    
+
+--reachableDelta::(Ord a) => FiniteA a -> FiniteA a
+reachableDelta af@(F d sf si) = let
+    alp = (Set.toList . getAlphabet) af
+    qs = reachableStates alp d [si]
+    allState = getStateDomain d
+    ks = [(x,y) | x<-(allState \\ qs), y<-alp]
+    nDelta = foldl (\x k -> Map.delete k x) d ks
+  in
+    F nDelta sf si

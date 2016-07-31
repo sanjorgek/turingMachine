@@ -16,9 +16,9 @@ module Data.State
 	-- * Data and type
 	State(..)
 	,Final(..)
-	,terminal
 	-- * Functions
 	,isError
+	,terminal  
 ) where
 import Control.Applicative
 import Control.Monad
