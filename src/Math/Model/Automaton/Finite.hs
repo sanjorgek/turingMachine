@@ -195,7 +195,7 @@ translate (Moore d l qF s) ws = let
 		translate' dt lm q (y:ys) xs = translate' dt lm (nextD dt (q,y)) ys (xs++[lm Map.! (q, ())])
 translate (Mealy d l qF s) ws = let
 		(q, w) = translate' d l s ws []
-	in ws
+	in w
 	where 
 		translate' _ _ QE xs ys = (QE, "Error: \nCadena:"++xs++"\nResp parcial: "++ys)
 		translate' _ _ q [] xs = (q, xs)
