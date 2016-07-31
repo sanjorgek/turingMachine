@@ -40,6 +40,8 @@ module Math.Model.Automaton.Finite
 	,liftDN
   -- ** Mininmize delta
   ,reachableDelta
+  ,distinguishableDelta
+  ,minimizeFinite
 ) where
 import Data.State
 import Data.Sigma
@@ -223,7 +225,7 @@ reachableDelta af@(F d sf si) = let
     ks = [(x,y) | x<-qs, y<-alp]
     nDelta = foldl (\x k -> Map.insert k (nextD d k,()) x) Map.empty ks
   in
-    F nDelta sf si
+    F nDelta (Set.intersection sf (Set.fromList qs)) si
 reachableDelta afn@(FN dn sf si) = let
     allState = getStateDomain dn  
     alp = (Set.toList . getAlphabet) afn
@@ -231,7 +233,7 @@ reachableDelta afn@(FN dn sf si) = let
     ks = [(x,y) | x<-qs, y<-alp]
     nDelta = foldl (\x k -> Map.insert k (nextND dn k,()) x) Map.empty ks
   in
-    FN nDelta sf si
+    FN nDelta (Set.intersection sf (Set.fromList qs)) si
     
 fstPartition sf qs = let
     (xs,ys) = partition (terminal sf) qs
@@ -245,11 +247,20 @@ samePartition (x:xs) q1 q2
 
 reachState alp d q = [nextD d (q, a) | a<- alp]
 
---distinguishable::(Ord a) => [Symbol] -> Delta a -> [[State a]] -> [State a] -> [[State a]]
+reachState2 alp d q = (nub .concat) [nextND d (q, a) | a<- alp]
+
 distinguishable alp d pss ps@(q:qs) = let
     nqs = reachState alp d q
     f = zipWith (samePartition pss)
     g x = f (reachState alp d x) nqs
+    (xs,ys) = partition (and . g) ps
+  in
+    nub [xs, ys] \\ [[]]
+    
+distinguishable2 alp d pss ps@(q:qs) = let
+    nqs = reachState2 alp d q
+    f = zipWith (samePartition pss)
+    g x = f (reachState2 alp d x) nqs
     (xs,ys) = partition (and . g) ps
   in
     nub [xs, ys] \\ [[]]
@@ -260,16 +271,45 @@ lDistinguishable alp d pss = let
     npss = f pss
   in if npss == pss then pss else lDistinguishable alp d npss
     
-equivDelta::(Ord a) => FiniteA a -> FiniteA a
-equivDelta af@(F d sf si) = let
+lDistinguishable2 alp d pss = let
+    g = distinguishable2 alp d pss
+    f = (nub . concatMap g)
+    npss = f pss
+  in if npss == pss then pss else lDistinguishable2 alp d npss
+
+{-|
+Delete redundant states and their transitions, if a state is equivalent to another then is redundant, two state are equivalent if they are undistinguisahbles.
+-}
+distinguishableDelta::(Ord a) => FiniteA a -> FiniteA a
+distinguishableDelta af@(F d sf si) = let
     allState = getStateDomain d
     alp = (Set.toList . getAlphabet) af    
     p0 = fstPartition sf allState
     qss = lDistinguishable alp d p0
-    f (ps:pss) e = if elem e ps then head ps else f pss e
+    f (ps:pss) e = if e `elem` ps then head ps else f pss e
     f [] _ = QE
-    ks = [(x,y) | x<-(map head qss), y<-alp]
+    ks = [(x,y) | x<- map head qss, y<-alp]
     nDelta = foldl (\x k -> Map.insert k (f qss (nextD d k), ()) x) Map.empty ks
   in
     F nDelta (Set.map (f qss) sf) si
-    
+distinguishableDelta afn@(FN dn sf si) = let
+    allState = getStateDomain dn
+    alp = (Set.toList . getAlphabet) afn
+    p0 = fstPartition sf allState
+    qss = lDistinguishable2 alp dn p0
+    f (ps:pss) e = if e `elem` ps then head ps else f pss e
+    f [] _ = QE
+    ks = [(x,y) | x<- map head qss, y<-alp]
+    nDelta = foldl (\x k -> Map.insert k (map (f qss) (nextND dn k), ()) x) Map.empty ks
+  in
+    FN nDelta (Set.map (f qss) sf) si
+
+{-|
+Minimize a finite automaton,
+
+1. Delete unreachable states and their transitions
+
+2. Delete redundant states
+-}
+minimizeFinite::(Ord a) => FiniteA a -> FiniteA a
+minimizeFinite = distinguishableDelta . reachableDelta
