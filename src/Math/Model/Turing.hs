@@ -1,8 +1,10 @@
 {-# OPTIONS_GHC -fno-warn-tabs #-}
 {-# OPTIONS_HADDOCK show-extensions #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE GADTSyntax #-}
 {-# LANGUAGE ExistentialQuantification #-}
+{-# LANGUAGE GADTSyntax                #-}
+{-# LANGUAGE GADTs                     #-}
+{-# LANGUAGE MultiParamTypeClasses     #-}
+{-# LANGUAGE TypeOperators             #-}
 {-|
 Module      : Turing
 Description : Turing machine abstaction
@@ -15,19 +17,19 @@ Portability : portable
 Turing machine abstaction
 -}
 module Math.Model.Turing where
-import Data.Delta
-import Data.State
-import Data.Sigma
-import Data.List
-import Data.Monoid
-import Control.Applicative
-import qualified Data.Map.Strict as Map
-import qualified Data.Foldable as Fold
+import           Control.Applicative
+import           Data.Delta
+import qualified Data.Foldable       as Fold
+import           Data.List
+import qualified Data.Map.Strict     as Map
+import           Data.Monoid
+import           Data.Sigma
+import           Data.State
 
 class Ways a where
 	oposite::a -> a
 
-data LRS = 
+data LRS =
 	-- |Left move
 	L
 	-- |No move
@@ -40,7 +42,7 @@ instance Ways LRS where
 	oposite R = L
 	oposite S = S
 
-data FW = 
+data FW =
 	Dw
 	|Lf
 	|Rt
@@ -61,7 +63,7 @@ liftD = liftDAux
 
 liftMD::(Ord a, Ord b) => [(a,[b],a,[b],[c])]->MDelta a b c
 liftMD = liftDAux
-	
+
 liftDAux:: (Ord a, Ord b) => [(a,b,a,b,c)]-> (:->:) a b (b,c)
 liftDAux ls = let
 		(as,bs,cs,ds,es) = unzip5 ls

@@ -20,16 +20,16 @@ module Math.Model.Automaton.Stack
   ,getInputAlphabet
   ,getStackAlphabet
 ) where
-import Data.List
-import Data.Monoid
+import           Data.Delta
+import qualified Data.Foldable   as Fold
+import           Data.List
 import qualified Data.Map.Strict as Map
-import qualified Data.Foldable as Fold
-import Data.Delta
-import Data.State
-import Data.Sigma
+import           Data.Monoid
+import           Data.Sigma
+import           Data.State
 
 {-|
-Delta for stack machine, takes a state, a symbol in string input or not and a 
+Delta for stack machine, takes a state, a symbol in string input or not and a
 symbol in stack head and returns next state and update stack
 -}
 type Delta a = (:->:) a (Either Symbol Epsilon, Symbol) Wd
@@ -51,14 +51,14 @@ liftD xs = let
   in Map.fromList (zip ks rs)
 
 nextDTuple :: (Ord a) => Delta a -> (State a, (Either Symbol Epsilon, Symbol)) -> (State a, Wd)
-nextDTuple dt k = if Map.member k dt then dt Map.! k else (QE,[]) 
+nextDTuple dt k = if Map.member k dt then dt Map.! k else (QE,[])
 
 -- |Stack machine only needs a delta, an init state and an initial symbol
 data StackA a = Stack (Delta a) (State a) (Final a) Symbol deriving(Show, Eq)
 
 getSigma :: [Either a b] -> [a]
 getSigma [] = []
-getSigma ((Left x):xs) = x:(getSigma xs)
+getSigma (Left x : xs) = x : getSigma xs
 getSigma (_:xs) = getSigma xs
 
 getInputAlphabet :: StackA t -> [Either Symbol Epsilon]
@@ -71,10 +71,13 @@ cleanStacks::[(State a, Wd)]->[(State a, Wd)]
 cleanStacks [] = []
 cleanStacks ((QE, _):xs) = cleanStacks xs
 cleanStacks ((_, []):xs) = cleanStacks xs
-cleanStacks (x:xs) = x:(cleanStacks xs)
+cleanStacks (x:xs) = x : cleanStacks xs
 
 aceptEmptyStack::[(a,Wd)]->Bool
-aceptEmptyStack xss = any aceptF1 xss
+aceptEmptyStack = any aceptF1
   where
     aceptF1 (_,[]) = True
     aceptF1 (_,_) = False
+
+checkWordByStack (Stack dn qi _ z0) = let
+  in True

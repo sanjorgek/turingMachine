@@ -1,10 +1,10 @@
 {-# OPTIONS_GHC -fno-warn-tabs #-}
 {-# OPTIONS_HADDOCK show-extensions #-}
-{-# LANGUAGE TypeOperators #-}
-{-# LANGUAGE TypeFamilies #-}
-{-# LANGUAGE TypeSynonymInstances #-}
-{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE TypeFamilies          #-}
+{-# LANGUAGE TypeOperators         #-}
+{-# LANGUAGE TypeSynonymInstances  #-}
 {-|
 Module      : Turing1T4W
 Description : Two ways turing machine
@@ -17,14 +17,14 @@ Portability : portable
 Two ways turing machine
 -}
 module Math.Model.Turing.TwoWays where
-import Data.Delta
-import Data.State
-import Data.Sigma
-import Math.Model.Turing
-import Data.List
-import Data.Monoid
-import Control.Applicative
-import qualified Data.Foldable as Fold
+import           Control.Applicative
+import           Data.Delta
+import qualified Data.Foldable       as Fold
+import           Data.List
+import           Data.Monoid
+import           Data.Sigma
+import           Data.State
+import           Math.Model.Turing
 
 data Tape a = T [a] a [a] deriving(Show, Eq)
 
@@ -32,16 +32,16 @@ instance Functor Tape where
 	fmap f (T xs a ys) = T (map f xs) (f a) (map f ys)
 
 instance Applicative Tape where
-	pure x = T [] x [] 
+	pure x = T [] x []
 	--
 	(<*>) (T fs f gs) (T xs a ys) = T [] (f a) []
 
 instance (Eq s, Monoid s) => Monoid (Tape s) where
 	mempty = T [] mempty []
 	mappend (T xs a ys) (T [] b zs) = T xs a ((++) ys (if b == mempty then zs else b : zs))
-	mappend t (T (x:xs) a ys) = if 
-			x==mempty 
-		then mappend t (T [] mempty (xs++(a:ys))) 
+	mappend t (T (x:xs) a ys) = if
+			x==mempty
+		then mappend t (T [] mempty (xs++(a:ys)))
 		else mappend t (T [] x (xs++(a:ys)))
 
 {-|

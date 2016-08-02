@@ -10,7 +10,7 @@ Maintainer  : sanjorgek@ciencias.unam.mx
 Stability   : experimental
 Portability : portable
 
-Finite Automaton is a stateful machine where all transition means that machine 
+Finite Automaton is a stateful machine where all transition means that machine
 reads a symbol
 -}
 module Math.Model.Automaton.Finite
@@ -18,15 +18,15 @@ module Math.Model.Automaton.Finite
   -- * Recognizer
   -- ** Functions
 	Delta(..)
-	,DeltaN(..) 
-  -- ** Constructor   
+	,DeltaN(..)
+  -- ** Constructor
 	,FiniteA(..)
 	,checkString
 	-- * Transducer
-  -- ** Functions  
+  -- ** Functions
 	,Lambda1(..)
 	,Lambda2(..)
-  -- ** Constructor     
+  -- ** Constructor
 	,Transductor(..)
 	,translate
   -- * Auxiliar functions
@@ -43,15 +43,15 @@ module Math.Model.Automaton.Finite
   ,distinguishableDelta
   ,minimizeFinite
 ) where
-import Data.State
-import Data.Sigma
-import Data.Delta
-import Data.List
-import Data.Monoid
-import Control.Monad
-import qualified Data.Set as Set
+import           Control.Monad
+import           Data.Delta
+import qualified Data.Foldable   as Fold
+import           Data.List
 import qualified Data.Map.Strict as Map
-import qualified Data.Foldable as Fold
+import           Data.Monoid
+import qualified Data.Set        as Set
+import           Data.Sigma
+import           Data.State
 
 {-|
 Transition function that for every pair, a State and a Symbol by domain, decide next state in machine
@@ -66,7 +66,7 @@ Lift a list of 3-tuples to a Delta
 liftD::(Ord a) => [(a,Symbol,a)] -> Delta a
 liftD ds = let
 		(xs,ys,zs) = unzip3 ds
-		f = map return 
+		f = map return
 		xys = zip (f xs) ys
 		qzs = zip (f zs) (repeat ())
 	in Map.fromList (zip xys qzs)
@@ -118,11 +118,11 @@ liftL2 ds = let
 		f = map return
 		nds = zip (zip (f xs) ys) zs
 	in Map.fromList nds
- 
+
 {-|
 Finite deterministic Automaton
 -}
-data FiniteA a = 
+data FiniteA a =
 	-- |>>>let autFin = F delta (Set.fromList [Q 0]) (Q 0)
 	F (Delta a) (Final a) (State a)
 	-- |>>>let autFinN = FN deltaN (Set.fromList [Q 0]) (Q 0)
@@ -182,8 +182,8 @@ Transducer Autmaton, both types:
 
 2. Mealy
 -}
-data Transductor a = 
-	Moore (Delta a) (Lambda1 a) (Final a) (State a) 
+data Transductor a =
+	Moore (Delta a) (Lambda1 a) (Final a) (State a)
 	|Mealy (Delta a) (Lambda2 a) (Final a) (State a) deriving(Show, Eq)
 
 {-|
@@ -200,7 +200,7 @@ translate (Moore d l qF s) ws = let
 translate (Mealy d l qF s) ws = let
 		(q, w) = translate' d l s ws []
 	in w
-	where 
+	where
 		translate' _ _ QE xs ys = (QE, "Error: \nCadena:"++xs++"\nResp parcial: "++ys)
 		translate' _ _ q [] xs = (q, xs)
 		translate' dt lm q (x:xs) ys = translate' dt lm (nextD dt (q, x)) xs (ys++[nextT lm (q,x)])
@@ -215,7 +215,7 @@ reachableStates2 alp d xs = let
     qs = (xs ++ concat [nextND d (y,x) | x<-alp, y<-xs])\\[QE]
     nqs = nub qs
   in
-    if nqs==xs then nqs else reachableStates2 alp d nqs 
+    if nqs==xs then nqs else reachableStates2 alp d nqs
 
 {-|
 Minimaize a delta for some finite automaton.
@@ -223,7 +223,7 @@ Gets a delta with all reachable states from initial state.
 -}
 reachableDelta::(Ord a) => FiniteA a -> FiniteA a
 reachableDelta af@(F d sf si) = let
-    allState = getStateDomain d  
+    allState = getStateDomain d
     alp = getAlphabetList af
     qs = reachableStates1 alp d [si]
     ks = [(x,y) | x<-qs, y<-alp]
@@ -231,14 +231,14 @@ reachableDelta af@(F d sf si) = let
   in
     F nDelta (Set.intersection sf (Set.fromList qs)) si
 reachableDelta afn@(FN dn sf si) = let
-    allState = getStateDomain dn  
+    allState = getStateDomain dn
     alp = getAlphabetList afn
     qs = reachableStates2 alp dn [si]
     ks = [(x,y) | x<-qs, y<-alp]
     nDelta = foldl (\x k -> Map.insert k (nextND dn k,()) x) Map.empty ks
   in
     FN nDelta (Set.intersection sf (Set.fromList qs)) si
-    
+
 fstPartition sf qs = let
     (xs,ys) = partition (terminal sf) qs
   in
@@ -260,7 +260,7 @@ distinguishable alp d pss ps@(q:qs) = let
     (xs,ys) = partition (and . g) ps
   in
     nub [xs, ys] \\ [[]]
-    
+
 distinguishable2 alp d pss ps@(q:qs) = let
     nqs = reachState2 alp d q
     f = zipWith (samePartition pss)
@@ -268,13 +268,13 @@ distinguishable2 alp d pss ps@(q:qs) = let
     (xs,ys) = partition (and . g) ps
   in
     nub [xs, ys] \\ [[]]
-    
+
 lDistinguishable alp d pss = let
     g = distinguishable alp d pss
     f = (nub . concatMap g)
     npss = f pss
   in if npss == pss then pss else lDistinguishable alp d npss
-    
+
 lDistinguishable2 alp d pss = let
     g = distinguishable2 alp d pss
     f = (nub . concatMap g)
@@ -287,7 +287,7 @@ Delete redundant states and their transitions, if a state is equivalent to anoth
 distinguishableDelta::(Ord a) => FiniteA a -> FiniteA a
 distinguishableDelta af@(F d sf si) = let
     allState = getStateDomain d
-    alp = getAlphabetList af    
+    alp = getAlphabetList af
     p0 = fstPartition sf allState
     qss = lDistinguishable alp d p0
     f (ps:pss) e = if e `elem` ps then head ps else f pss e

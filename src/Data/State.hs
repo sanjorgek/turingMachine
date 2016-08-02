@@ -11,34 +11,34 @@ Portability : portable
 
 Simple State function, have an isomorphism with Maybe but order are diferent
 -}
-module Data.State 
+module Data.State
 (
 	-- * Data and type
 	State(..)
 	,Final(..)
 	-- * Functions
 	,isError
-	,terminal  
+	,terminal
 ) where
-import Control.Applicative
-import Control.Monad
-import Data.Monoid
-import qualified Data.Foldable as F
-import qualified Data.Set as Set
+import           Control.Applicative
+import           Control.Monad
+import qualified Data.Foldable       as F
+import           Data.Monoid
+import qualified Data.Set            as Set
 
 {-|
 Macine states are only a label, maybe a letter
 -}
-data State a = 
+data State a =
 	-- |State constructor
-	Q a 
+	Q a
 	-- |Error state
 	| QE deriving(Show, Eq)
 
 -- |Same as Maybe
 instance Functor State where
 	fmap _ QE = QE
-	fmap f (Q q) = Q $ f q 
+	fmap f (Q q) = Q $ f q
 
 -- |Same as Maybe
 instance Applicative State where
@@ -55,8 +55,8 @@ instance Monad State where
 -- |In this differ with Maybe because this show a upper bounded order
 instance (Bounded a)=> Bounded (State a) where
 	minBound = Q minBound
-	maxBound = QE 
-  
+	maxBound = QE
+
 instance (Ord a) => Ord (State a) where
   compare _ QE = LT
   compare QE _ = GT
@@ -89,4 +89,4 @@ terminal qs q = Set.member q qs
 Tells if a state is a error state
 -}
 isError::(Eq a) => State a -> Bool
-isError q = q==QE
+isError = (QE==)
