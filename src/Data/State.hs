@@ -53,7 +53,7 @@ instance Monad State where
 	(Q q) >>= f = f q
 
 -- |In this differ with Maybe because this show a upper bounded order
-instance (Bounded a)=> Bounded (State a) where
+instance (Bounded a) => Bounded (State a) where
 	minBound = Q minBound
 	maxBound = QE
 

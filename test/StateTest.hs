@@ -1,11 +1,11 @@
 {-# OPTIONS_GHC -fno-warn-tabs #-}
 module Main where
 
-import Test.Hspec
-import Test.QuickCheck
-import Test.Hspec.QuickCheck
-import Data.State
-import qualified Data.Set as Set
+import qualified Data.Set              as Set
+import           Data.State
+import           Test.Hspec
+import           Test.Hspec.QuickCheck
+import           Test.QuickCheck
 
 instance (Arbitrary a) => Arbitrary (State a) where
   arbitrary = do

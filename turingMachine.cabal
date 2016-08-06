@@ -36,6 +36,7 @@ library
                        , TypeOperators
                        , MultiParamTypeClasses
                        , GADTSyntax
+                       , GADTs
                        , ExistentialQuantification
                        , TypeFamilies
                        , FlexibleInstances
