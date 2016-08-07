@@ -14,14 +14,18 @@ Stack Automaton
 -}
 module Math.Model.Automaton.Stack
 (
+  -- * Function
   Delta(..)
-  ,Key(..)
   ,liftD
+  ,Key(..)
+  -- * Constructor
 	,StackA(..)
+  ,checkWordByStack
+  ,checkWordByFinal
+  -- * Auxiliar functions
   ,getInputAlphabet
   ,getSigma
   ,getStackAlphabet
-  ,checkWordByStack
 ) where
 import           Data.Delta
 import qualified Data.Foldable   as Fold
@@ -35,12 +39,12 @@ import           Data.State
 Delta for stack machine, takes a state, a symbol in string input or not and a
 symbol in stack head and returns next state and update stack
 -}
-type Delta a = (:->:) a (Either Symbol Epsilon, Symbol) Wd
+type Delta a = (:->:) a (Maybe Symbol, Symbol) Wd
 
 {-|
 A key for a delta.
 -}
-type Key a = (State a, (Either Symbol Epsilon, Symbol))
+type Key a = (State a, (Maybe Symbol, Symbol))
 
 {-|
 Takes a list of tuples and lift a Delta
@@ -51,8 +55,8 @@ liftD:: Ord a => [(a, Wd, Symbol, a, Wd)]-> Delta a
 liftD xs = let
     (as,bs,cs,ds,es) = unzip5 xs
     f = map Q
-    g [] = Right Epsilon
-    g (x:_) = Left x
+    g [] = Nothing
+    g (x:_) = Just x
     ps = zip (map g bs) cs
     ks = zip (f as) ps
     rs = zip (f ds) es
@@ -66,14 +70,19 @@ nextDTuple dt k = if Map.member k dt then dt Map.! k else (QE,[])
 -- This works for empty stack and final state acceptor
 data StackA a = Stack (Delta a) (State a) (Final a) Symbol deriving(Show, Eq)
 
-getSigma :: [Either a b] -> [a]
+{-|
+Return only real input character at delta definition
+-}
+getSigma :: [Maybe a] -> [a]
 getSigma [] = []
-getSigma (Left x : xs) = x : getSigma xs
+getSigma (Just x : xs) = x : getSigma xs
 getSigma (_:xs) = getSigma xs
 
-getInputAlphabet :: StackA a -> [Either Symbol Epsilon]
+-- |Gives a input character, included epsilon
+getInputAlphabet :: StackA a -> [Maybe Symbol]
 getInputAlphabet (Stack dn _ _ _) = (fst . unzip . getFirstParam) dn
 
+-- |Gives a stack alphabet
 getStackAlphabet :: StackA a -> [Symbol]
 getStackAlphabet (Stack dn _ _ _) = (snd . unzip . getFirstParam) dn
 
@@ -96,10 +105,10 @@ aceptEmptyStack = any aceptF1
     aceptF1 (_,_) = False
 
 epsilonTrans:: Ord a => Delta a -> State a -> Symbol -> (State a, Wd)
-epsilonTrans dn q b = nextDTuple dn (q, (Right Epsilon, b))
+epsilonTrans dn q b = nextDTuple dn (q, (Nothing, b))
 
 symbolTrans:: Ord a => Delta a -> State a -> Symbol -> Symbol -> (State a, Wd)
-symbolTrans dn q a b = nextDTuple dn (q, (Left a, b))
+symbolTrans dn q a b = nextDTuple dn (q, (Just a, b))
 
 mapEpsilon:: Ord a => Delta a -> [(State a, Wd)] -> [(State a, Wd)]
 mapEpsilon dn [] = []
@@ -113,6 +122,9 @@ mapSymbol dn a ((q,b:bs):xs) = let
     (p, ys) = symbolTrans dn q a b
   in (p, ys++bs) : mapSymbol dn a xs
 
+{-|
+Given a stack automaton check if some word is acepted by empty stack.
+-}
 checkWordByStack:: Ord a => StackA a -> Wd -> Bool
 checkWordByStack (Stack dn qi _ z0) ws = let
     checkString [] _ = False
@@ -128,6 +140,9 @@ aceptState qfs = any aceptF1
     aceptF1 (QE,_) = False
     aceptF1 (q,_) = terminal qfs q
 
+{-|
+Given a stack automaton check if some word is acepted by final state.
+-}
 checkWordByFinal (Stack dn qi qfs z0) ws = let
     checkString [] _ = False
     checkString stks [] = aceptState qfs stks || checkString ((cleanStacks . mapEpsilon dn) stks) []

@@ -17,7 +17,6 @@ module Data.Sigma
 (
   -- * Symbols
 	Symbol(..)
-  ,Epsilon(..)
 	,blank
 	,Wd(..)
   -- * Alphabets
@@ -37,8 +36,6 @@ import qualified Data.Set      as Set
 Symbols are character, and with Unicode CharSet we have a big amount of them.
 -}
 type Symbol = Char
-
-data Epsilon = Epsilon deriving(Show, Ord, Eq)
 
 {-|
 Symbol type are forced to be a monoid
