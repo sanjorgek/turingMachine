@@ -52,9 +52,13 @@ instance Ways LRS where
 	oposite S = S
 
 data FW =
+  -- |Down move
 	Dw
+  -- |Left move
 	|Lf
+  -- |Right move
 	|Rt
+  -- |Up move
 	|Up deriving(Show, Eq, Bounded)
 
 instance Enum FW where
