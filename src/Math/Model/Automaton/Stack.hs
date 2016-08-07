@@ -21,6 +21,7 @@ module Math.Model.Automaton.Stack
   ,getInputAlphabet
   ,getSigma
   ,getStackAlphabet
+  ,checkWordByStack
 ) where
 import           Data.Delta
 import qualified Data.Foldable   as Fold
@@ -81,6 +82,12 @@ cleanStacks [] = []
 cleanStacks ((QE, _):xs) = cleanStacks xs
 cleanStacks (x:xs) = x : cleanStacks xs
 
+cleanStacks2::[(State a, Wd)]->[(State a, Wd)]
+cleanStacks2 [] = []
+cleanStacks2 ((QE, _):xs) = cleanStacks2 xs
+cleanStacks2 ((_, []):xs) = cleanStacks xs
+cleanStacks2 (x:xs) = x : cleanStacks2 xs
+
 aceptEmptyStack::[(State a,Wd)]->Bool
 aceptEmptyStack = any aceptF1
   where
@@ -106,9 +113,11 @@ mapSymbol dn a ((q,b:bs):xs) = let
     (p, ys) = symbolTrans dn q a b
   in (p, ys++bs) : mapSymbol dn a xs
 
-checkWordByStack :: Ord a => StackA a -> Wd -> Bool
+checkWordByStack:: Ord a => StackA a -> Wd -> Bool
 checkWordByStack (Stack dn qi _ z0) ws = let
     checkString [] _ = False
     checkString stks [] = aceptEmptyStack stks || checkString ((cleanStacks . mapEpsilon dn) stks) []
-    checkString stks (a:as) = checkString ((cleanStacks . mapSymbol dn a) stks) as
+    checkString stks (a:as) = let
+        stks2 = (cleanStacks2 . mapEpsilon dn) stks
+      in checkString ((cleanStacks . mapSymbol dn a) (stks++stks2)) as
   in checkString [(qi,[z0])] ws
