@@ -31,10 +31,14 @@ data Tape a = T [a] a [a] deriving(Show, Eq)
 instance Functor Tape where
 	fmap f (T xs a ys) = T (map f xs) (f a) (map f ys)
 
+zipFunc::[t1 -> t] -> [t1] -> [t]
+zipFunc [] _ = []
+zipFunc _ [] = []
+zipFunc (f:fs) (x:xs) = f x : zipFunc fs xs
+
 instance Applicative Tape where
 	pure x = T [] x []
-	--
-	(<*>) (T fs f gs) (T xs a ys) = T [] (f a) []
+	(<*>) (T fs f gs) (T xs a ys) = T (zipFunc fs xs) (f a) (zipFunc gs ys)
 
 instance (Eq s, Monoid s) => Monoid (Tape s) where
 	mempty = T [] mempty []
