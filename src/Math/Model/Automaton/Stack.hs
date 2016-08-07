@@ -121,3 +121,17 @@ checkWordByStack (Stack dn qi _ z0) ws = let
         stks2 = (cleanStacks2 . mapEpsilon dn) stks
       in checkString ((cleanStacks . mapSymbol dn a) (stks++stks2)) as
   in checkString [(qi,[z0])] ws
+
+aceptState::(Ord a) => Final a -> [(State a,Wd)] -> Bool
+aceptState qfs = any aceptF1
+  where
+    aceptF1 (QE,_) = False
+    aceptF1 (q,_) = terminal qfs q
+
+checkWordByFinal (Stack dn qi qfs z0) ws = let
+    checkString [] _ = False
+    checkString stks [] = aceptState qfs stks || checkString ((cleanStacks . mapEpsilon dn) stks) []
+    checkString stks (a:as) = let
+        stks2 = (cleanStacks2 . mapEpsilon dn) stks
+      in checkString ((cleanStacks . mapSymbol dn a) (stks++stks2)) as
+  in checkString [(qi, [z0])] ws
