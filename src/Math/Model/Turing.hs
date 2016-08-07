@@ -37,6 +37,15 @@ data LRS =
 	-- |Right move
 	| R deriving(Show, Eq, Ord, Bounded)
 
+instance Enum LRS where
+  toEnum n
+    |n<=0 = L
+    |n>=2 = R
+    |otherwise = S
+  fromEnum L = 0
+  fromEnum S = 1
+  fromEnum R = 2
+
 instance Ways LRS where
 	oposite L = R
 	oposite R = L
@@ -47,6 +56,17 @@ data FW =
 	|Lf
 	|Rt
 	|Up deriving(Show, Eq, Bounded)
+
+instance Enum FW where
+  toEnum n
+    |n<=0 = Dw
+    |n>=3 = Up
+    |n==1 = Lf
+    |otherwise = Rt
+  fromEnum Dw = 0
+  fromEnum Lf = 1
+  fromEnum Rt = 2
+  fromEnum Up = 3
 
 instance Ways FW where
 	oposite Up = Dw
