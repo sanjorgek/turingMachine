@@ -54,7 +54,8 @@ import           Data.Sigma
 import           Data.State
 
 {-|
-Transition function that for every pair, a State and a Symbol by domain, decide next state in machine
+Transition function that for every pair, a State and a Symbol by domain, decide
+next state in machine
 -}
 type Delta a = (:->:) a Symbol ()
 
@@ -72,7 +73,8 @@ liftD ds = let
 	in Map.fromList (zip xys qzs)
 
 {-|
-Transition function that for every pair, a State and a Symbol by domain, decide next list of states in machine
+Transition function that for every pair, a State and a Symbol by domain, decide
+next list of states in machine
 -}
 type DeltaN a = (:-<:) a Symbol ()
 
@@ -282,7 +284,9 @@ lDistinguishable2 alp d pss = let
   in if npss == pss then pss else lDistinguishable2 alp d npss
 
 {-|
-Delete redundant states and their transitions, if a state is equivalent to another then is redundant, two state are equivalent if they are undistinguisahbles.
+Delete redundant states and their transitions, if a state is equivalent to
+another then is redundant, two state are equivalent if they are
+undistinguisahbles.
 -}
 distinguishableDelta::(Ord a) => FiniteA a -> FiniteA a
 distinguishableDelta af@(F d sf si) = let

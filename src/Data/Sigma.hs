@@ -87,7 +87,8 @@ closureAlph::Alphabet -> [Wd]
 closureAlph sig = "":closureAlph' (Set.toList sig)
 
 {-|
-For some alphabet __S__ and a natural number __n__ take all words of length __n__ or less
+For some alphabet __S__ and a natural number __n__ take all words of length
+__n__ or less
 -}
 lessKWords::Alphabet -> Integer -> [Wd]
 lessKWords sig k = let
