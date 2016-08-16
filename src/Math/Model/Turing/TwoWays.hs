@@ -39,7 +39,7 @@ zipFunc (f:fs) (x:xs) = f x : zipFunc fs xs
 instance Applicative Tape where
 	pure x = T [] x []
 	(<*>) (T fs f gs) (T xs a ys) = T (zipFunc fs xs) (f a) (zipFunc gs ys)
-
+{-
 instance (Eq s, Monoid s) => Monoid (Tape s) where
 	mempty = T [] mempty []
 	mappend (T xs a ys) (T [] b zs) = T xs a ((++) ys (if b == mempty then zs else b : zs))
@@ -47,7 +47,7 @@ instance (Eq s, Monoid s) => Monoid (Tape s) where
 			x==mempty
 		then mappend t (T [] mempty (xs++(a:ys)))
 		else mappend t (T [] x (xs++(a:ys)))
-
+-}
 {-|
 >>> let tapeLifted = (liftTape "word")::Tape Symbol
 >>> tapeLifted
@@ -71,7 +71,7 @@ instance TuringM Tape Symbol LRS where
 	moveHead R (T xs a (y:ys)) = T (xs++[a]) y ys
 	moveHead L (T [] a ys) = T [] mempty (a:ys)
 	moveHead L (T xs a ys) = T (init xs) (last xs) (a:ys)
-
+{-
 instance TuringM Tape [Symbol] LRS where
 	moveHead S t = t
 	moveHead R (T xss as []) = let
@@ -100,3 +100,4 @@ instance TuringM Tape [Symbol] LRS where
 			g = map init
 			h = zipWith (:)
 		in T (g yss) (f yss) (h as xss)
+-}

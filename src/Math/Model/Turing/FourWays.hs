@@ -25,7 +25,7 @@ import           Data.Sigma
 import           Data.State
 import           Math.Model.Turing
 import           Math.Model.Turing.TwoWays
-
+{-
 data Tracks a = Track [Tape a] (Tape a) [Tape a] deriving(Eq)
 
 instance (Show a) => Show (Tracks a) where
@@ -65,3 +65,4 @@ instance TuringM Tracks Symbol FW where
 	moveHead Up (Track xts ts yts) = Track (init xts) (last xts) (ts:yts)
 	moveHead Dw (Track xts ts []) = Track (xts++[ts]) mempty []
 	moveHead Dw (Track xts ts (ys:yts)) = Track (xts++[ts]) ys yts
+-}

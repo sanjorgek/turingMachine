@@ -26,6 +26,7 @@ library
   exposed-modules:     Data.Delta
                        , Data.Sigma
                        , Data.State
+                       , Data.Tape
                        , Math.Model.Automaton.Finite
                        , Math.Model.Automaton.Stack
                        , Math.Model.Turing

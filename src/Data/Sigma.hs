@@ -1,6 +1,5 @@
 {-# OPTIONS_HADDOCK show-extensions #-}
 {-# OPTIONS_GHC -fno-warn-tabs #-}
-{-# LANGUAGE FlexibleInstances    #-}
 {-# LANGUAGE TypeSynonymInstances #-}
 {-|
 Module      : Sigma
@@ -52,10 +51,10 @@ List symbol alias, Word are defined in Prelude
 -}
 type Wd = [Symbol]
 
--- |Simple word monoid, holds all properties
+{- |Simple word monoid, holds all properties
 instance Monoid Wd where
   mempty = []
-  mappend = (++)
+  mappend = (++)-}
 
 -- |An alphabet is a set of symbols
 type Alphabet = Set.Set Symbol
