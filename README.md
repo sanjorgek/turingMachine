@@ -1,6 +1,8 @@
 # Turing Machine Model
 An implementation of Turing Machine and Automaton for language theory
 
+  [![Build Status](https://travis-ci.org/sanjorgek/turingMachine.svg?branch=master)](https://travis-ci.org/sanjorgek/turingMachine)
+
 ## Math Models
 ### Finite Automaton
 
