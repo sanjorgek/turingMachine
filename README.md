@@ -2,6 +2,7 @@
 An implementation of Turing Machine and Automaton for language theory
 
   [![Build Status](https://travis-ci.org/sanjorgek/turingMachine.svg?branch=master)](https://travis-ci.org/sanjorgek/turingMachine)
+  [![CircleCI](https://circleci.com/gh/sanjorgek/turingMachine.svg?style=svg)](https://circleci.com/gh/sanjorgek/turingMachine)
 
 ## Math Models
 ### Finite Automaton
