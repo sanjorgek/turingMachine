@@ -1,0 +1,9 @@
+machine:
+  ghc: 
+    version: 7.10.2
+
+test:
+  pre:
+    - cabal install hspec
+    - cabal install QuickCheck
+    - cabal install containers
