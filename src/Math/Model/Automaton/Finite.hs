@@ -43,12 +43,10 @@ module Math.Model.Automaton.Finite
   ,distinguishableDelta
   ,minimizeFinite
 ) where
-import           Control.Monad
 import           Data.Delta
 import qualified Data.Foldable   as Fold
 import           Data.List
 import qualified Data.Map.Strict as Map
-import           Data.Monoid
 import qualified Data.Set        as Set
 import           Data.Sigma
 import           Data.State
@@ -59,6 +57,11 @@ next state in machine
 -}
 type Delta a = (:->:) a Symbol ()
 
+liftAux ds = let
+		(xs,ys,zs) = unzip3 ds
+		f = map return
+	in (zip (f xs) ys, zs, f)
+
 {-|
 Lift a list of 3-tuples to a Delta
 
@@ -66,9 +69,7 @@ Lift a list of 3-tuples to a Delta
 -}
 liftD::(Ord a) => [(a,Symbol,a)] -> Delta a
 liftD ds = let
-		(xs,ys,zs) = unzip3 ds
-		f = map return
-		xys = zip (f xs) ys
+		(xys, zs, f) = liftAux ds
 		qzs = zip (f zs) (repeat ())
 	in Map.fromList (zip xys qzs)
 
@@ -85,9 +86,7 @@ Lift a list of 3-tuples to a non deterministic delta
 -}
 liftDN::(Ord a) => [(a,Symbol,[a])] -> DeltaN a
 liftDN ds = let
-		(xs,ys,zs) = unzip3 ds
-		f = map return
-		xys = zip (f xs) ys
+		(xys, zs, f) = liftAux ds
 		qzs = zip (map f zs) (repeat ())
 	in Map.fromList (zip xys qzs)
 

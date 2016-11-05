@@ -36,11 +36,8 @@ module Data.Delta
   ,getStateDomain
   ,getStateRange
 ) where
-import           Control.Applicative
-import           Data.Foldable
 import           Data.List
-import qualified Data.Map.Strict     as Map
-import           Data.Monoid
+import qualified Data.Map.Strict as Map
 import           Data.Sigma
 import           Data.State
 
