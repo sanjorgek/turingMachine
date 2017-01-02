@@ -26,10 +26,11 @@ Stack memory machine with states
   - [x] deterministic automaton def
   - [x] Non-deterministic automaton def
   - [x] Transductor
+  - [ ] Transductor equivalences
   - [x] Recheable states
   - [x] Distinguishable states
   - [x] Minimize deterministic
-  - [ ] Non-deterministic to deterministic automaton
+  - [ ] Non-deterministic to deterministic automaton, and viceversa
 - [ ] Stack Automaton
   - [x] Lift delta
   - [x] Deterministic stack automaton def

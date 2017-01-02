@@ -320,3 +320,9 @@ Minimize a finite automaton,
 -}
 minimizeFinite::(Ord a) => FiniteA a -> FiniteA a
 minimizeFinite = distinguishableDelta . reachableDelta
+
+convertFA::(Ord a) => FiniteA a -> FiniteA a
+convertFA (F d qf q0) = let
+    f (x, y) = ([x], y)
+  in
+    FN (fmap f d) qf q0
