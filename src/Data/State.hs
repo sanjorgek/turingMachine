@@ -58,6 +58,7 @@ instance (Bounded a) => Bounded (State a) where
 	maxBound = QE
 
 instance (Ord a) => Ord (State a) where
+  compare QE QE = EQ
   compare _ QE = LT
   compare QE _ = GT
   compare (Q a) (Q b) = compare a b
