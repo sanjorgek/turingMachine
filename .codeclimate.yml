@@ -1,0 +1,9 @@
+engines:
+  hlint:
+    enabled: true
+    exclude_fingerprints:
+    - 19c3649a535fbfffff8b0f2f67bb6142
+ 
+ratings:
+  paths:
+    - "**.hs"
