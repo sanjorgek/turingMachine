@@ -31,7 +31,6 @@ import           Data.Delta
 import qualified Data.Foldable   as Fold
 import           Data.List
 import qualified Data.Map.Strict as Map
-import           Data.Monoid
 import           Data.Sigma
 import           Data.State
 
