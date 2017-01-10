@@ -13,7 +13,8 @@ Portability : portable
 Finite Automaton is a stateful machine where all transition means that machine
 reads a symbol
 -}
-module Math.Model.Automaton.Finite
+module Math.Model.Automaton.Finite where
+{-|
 (
   -- * Recognizer
   -- ** Functions
@@ -42,7 +43,7 @@ module Math.Model.Automaton.Finite
   ,reachableDelta
   ,distinguishableDelta
   ,minimizeFinite
-) where
+) where -}
 import           Data.Delta
 import qualified Data.Foldable   as Fold
 import           Data.List
@@ -87,7 +88,8 @@ Lift a list of 3-tuples to a non deterministic delta
 liftDN::(Ord a) => [(a,Symbol,[a])] -> DeltaN a
 liftDN ds = let
 		(xys, zs, f) = liftAux ds
-		qzs = zip (map f zs) (repeat ())
+		g = Set.fromList . f
+		qzs = zip (map g zs) (repeat ())
 	in Map.fromList (zip xys qzs)
 
 {-|
@@ -150,12 +152,12 @@ finalState dt q (x:xs) = finalState dt (nextD dt (q,x)) xs
 {-|
 Same as finalState but work with no deterministic delta
 -}
-finalsStates::(Ord a) => DeltaN a -> [State a] -> Wd -> [State a]
-finalsStates _ qs [] = qs
-finalsStates dn qs (x:xs) = let
-    mDelta dt lq a = (nub.concatMap (\q -> nextND dt (q,a))) lq
+finalsStates::(Ord a) => DeltaN a -> Set.Set (State a) -> Wd -> Set.Set (State a)
+finalsStates _ sq [] = sq
+finalsStates dn sq (x:xs) = let
+    nsq = Set.map (\q -> nextND dn (q,x)) sq
   in
-    finalsStates dn (mDelta dn qs x) xs
+    finalsStates dn ((Set.unions . Set.toList) nsq) xs
 
 {-|
 Executes a automaton over a word
@@ -171,7 +173,8 @@ checkString (F d qF s) ws = let
 		f y = (not.isError) y && terminal qF y
 	in f q
 checkString (FN dn qF s) ws = let
-		qs = finalsStates dn [s] ws
+		sq = finalsStates dn (Set.fromList [s]) ws
+		qs = Set.toList sq
 		f y = (not.isError) y && terminal qF y
 		g = any f
 	in g qs
@@ -213,7 +216,7 @@ reachableStates1 alp d xs = let
     if nqs==xs then nqs else reachableStates1 alp d nqs
 
 reachableStates2 alp d xs = let
-    qs = (xs ++ concat [nextND d (y,x) | x<-alp, y<-xs])\\[QE]
+    qs = (xs ++ concat [Set.toList (nextND d (y,x)) | x<-alp, y<-xs])\\[QE]
     nqs = nub qs
   in
     if nqs==xs then nqs else reachableStates2 alp d nqs
@@ -252,7 +255,7 @@ samePartition (x:xs) q1 q2
 
 reachState alp d q = [nextD d (q, a) | a<- alp]
 
-reachState2 alp d q = (nub .concat) [nextND d (q, a) | a<- alp]
+reachState2 alp d q = (Set.toList . Set.unions) [nextND d (q, a) | a<- alp]
 
 distinguishable alp d pss ps@(q:qs) = let
     nqs = reachState alp d q
@@ -307,7 +310,7 @@ distinguishableDelta afn@(FN dn sf si) = let
     f (ps:pss) e = if e `elem` ps then head ps else f pss e
     f [] _ = QE
     ks = [(x,y) | x<- map head qss, y<-alp]
-    nDelta = foldl (\x k -> Map.insert k (map (f qss) (nextND dn k), ()) x) Map.empty ks
+    nDelta = foldl (\x k -> Map.insert k (Set.map (f qss) (nextND dn k), ()) x) Map.empty ks
   in
     FN nDelta (Set.map (f qss) sf) si
 
@@ -323,6 +326,6 @@ minimizeFinite = distinguishableDelta . reachableDelta
 
 convertFA::(Ord a) => FiniteA a -> FiniteA a
 convertFA (F d qf q0) = let
-    f (x, y) = ([x], y)
+    f (x, y) = (Set.fromList [x], y)
   in
     FN (fmap f d) qf q0
