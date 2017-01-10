@@ -38,6 +38,7 @@ module Data.Delta
 ) where
 import           Data.List
 import qualified Data.Map.Strict as Map
+import qualified Data.Set        as Set
 import           Data.Sigma
 import           Data.State
 
@@ -59,13 +60,13 @@ Non-Deterministic Delta
 
 Maps a tuple, a state and a param, to a tuple, a state list and a param.
 -}
-type (:-<:) a p1 p2 = Map.Map (State a, p1) ([State a], p2)
+type (:-<:) a p1 p2 = Map.Map (State a, p1) (Set.Set (State a), p2)
 
 {-|
 Next state function for non-deterministic delta
 -}
-nextND :: (Ord p1, Ord a) => (:-<:) a p1 p2 -> (State a, p1) -> [State a]
-nextND dt k = if Map.member k dt then fst (dt Map.! k) else [QE]
+nextND :: (Ord p1, Ord a) => (:-<:) a p1 p2 -> (State a, p1) -> Set.Set (State a)
+nextND dt k = if Map.member k dt then fst (dt Map.! k) else Set.insert QE Set.empty
 
 {-|
 Map a tuple, a state and a param, to some output
