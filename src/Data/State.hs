@@ -52,6 +52,12 @@ instance Monad State where
 	QE >>= _ = QE
 	(Q q) >>= f = f q
 
+{-|
+Holds
+
+>>> QE /= (toEnum:: State Int) . fromEnum QE
+True
+-}
 instance (Enum a) => Enum (State a) where
   toEnum = return . toEnum
   fromEnum (Q x) = fromEnum x
