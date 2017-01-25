@@ -52,6 +52,11 @@ instance Monad State where
 	QE >>= _ = QE
 	(Q q) >>= f = f q
 
+instance (Enum a) => Enum (State a) where
+  toEnum = return . toEnum
+  fromEnum (Q x) = fromEnum x
+  fromEnum QE = maxBound
+
 -- |In this differ with Maybe because this show a upper bounded order
 instance (Bounded a) => Bounded (State a) where
 	minBound = Q minBound

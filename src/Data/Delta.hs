@@ -19,11 +19,13 @@ module Data.Delta
 	-- *** Constructor
 	(:->:)(..)
 	-- *** Functions
+  ,liftD
 	,nextD
 	-- ** Not deterministic
 	-- *** Constructor
 	,(:-<:)(..)
   -- *** Functions
+  ,liftND
   ,nextND
 	-- * Transductor
 	-- ** Constructor
@@ -35,6 +37,10 @@ module Data.Delta
   ,getSecondParam
   ,getStateDomain
   ,getStateRange
+  ,getFirstParamSet
+  ,getSecondParamSet
+  ,getStateDomainSet
+  ,getStateRangeSet
 ) where
 import           Data.List
 import qualified Data.Map.Strict as Map
@@ -49,6 +55,13 @@ Maps a tuple, a state and a param, to a tuple, a state and a param.
 -}
 type (:->:) a p1 p2 = Map.Map (State a, p1) (State a, p2)
 
+liftD::(Ord a, Ord p1) => [(a, p1, a, p2)] -> (:->:) a p1 p2
+liftD ds = let
+    (xs, ys, ws, zs) = unzip4 ds
+    ks = zip (map return xs) ys
+    as = zip (map return ws) zs
+  in Map.fromList $ zip ks as
+
 {-|
 Next state function for deterministic delta
 -}
@@ -61,6 +74,14 @@ Non-Deterministic Delta
 Maps a tuple, a state and a param, to a tuple, a state list and a param.
 -}
 type (:-<:) a p1 p2 = Map.Map (State a, p1) (Set.Set (State a), p2)
+
+liftND::(Ord a, Ord p1) => [(a, p1, [a], p2)] -> (:-<:) a p1 p2
+liftND ds = let
+    (xs, ys, wss, zs) = unzip4 ds
+    ks = zip (map return xs) ys
+    f = Set.fromList . map return
+    as = zip (map f wss) zs
+  in Map.fromList $ zip ks as
 
 {-|
 Next state function for non-deterministic delta
@@ -85,11 +106,17 @@ Gets all params at domain, for (:->:) and (:-<:)
 getFirstParam::(Eq b) => Map.Map (a, b) a1 -> [b]
 getFirstParam = nub . snd . unzip . Map.keys
 
+getFirstParamSet::(Ord b) => Map.Map (a, b) a1 -> Set.Set b
+getFirstParamSet = Set.fromList . snd . unzip . Map.keys
+
 {-|
 Gets all params at range, for (:->:) and (:-<:)
 -}
 getSecondParam::(Eq b) => Map.Map k (a, b) -> [b]
 getSecondParam = nub . snd . unzip . Map.elems
+
+getSecondParamSet::(Ord b) => Map.Map k (a, b) -> Set.Set b
+getSecondParamSet = Set.fromList . snd . unzip . Map.elems
 
 {-|
 Gets all states at domain, for (:->:) and (:-<:)
@@ -97,8 +124,14 @@ Gets all states at domain, for (:->:) and (:-<:)
 getStateDomain::(Eq a) => Map.Map (a, b) a1 -> [a]
 getStateDomain = nub . fst . unzip . Map.keys
 
+getStateDomainSet::(Ord a) => Map.Map (a, b) a1 -> Set.Set a
+getStateDomainSet = Set.fromList . fst . unzip . Map.keys
+
 {-|
 Gets all params at range, for (:->:) and (:-<:)
 -}
 getStateRange::(Eq a) => Map.Map k (a, b) -> [a]
 getStateRange = nub . fst . unzip . Map.elems
+
+getStateRangeSet::(Ord a) => Map.Map k (a, b) -> Set.Set a
+getStateRangeSet = Set.fromList . fst . unzip . Map.elems
