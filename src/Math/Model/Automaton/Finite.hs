@@ -313,17 +313,19 @@ Minimize a finite automaton,
 minimizeFinite::(Ord a) => FiniteA a -> FiniteA a
 minimizeFinite = distinguishableDelta . reachableDelta
 
-nextStateSet::(Ord a) => NDelta a -> State a -> Symbol -> State (Set.Set a)
-nextStateSet nd q a = let
-    f QE = Set.empty
-    f (Q x) = Set.fromList [x]
-    sQ = nextND nd (q, a)
-    g sa sP = if sP==Set.empty
-      then sa
-      else let
-          p = Set.elemAt 0 sP
-        in g (Set.union (f p) sa) (Set.delete p sP)
-  in Q $ g Set.empty sQ
+state2Set::(Ord a) => State a -> Set.Set a
+state2Set QE = Set.empty
+state2Set (Q x) = Set.fromList [x]
+
+setState2Set::(Ord a) => Set.Set a -> Set.Set (State a) -> Set.Set a
+setState2Set sa sP = if sP==Set.empty
+  then sa
+  else let
+      p = Set.elemAt 0 sP
+    in setState2Set (Set.union (state2Set p) sa) (Set.delete p sP)
+
+nextStateSet::(Ord a) => NDelta a -> State a -> Symbol -> Set.Set a
+nextStateSet nd q a = setState2Set Set.empty $ nextND nd (q, a)
 
 convertFA::(Ord a) => FiniteA a -> FiniteA a
 convertFA (F d qf q0) = let
