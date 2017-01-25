@@ -19,11 +19,13 @@ module Data.Delta
 	-- *** Constructor
 	(:->:)(..)
 	-- *** Functions
+  ,liftD
 	,nextD
 	-- ** Not deterministic
 	-- *** Constructor
 	,(:-<:)(..)
   -- *** Functions
+  ,liftND
   ,nextND
 	-- * Transductor
 	-- ** Constructor
@@ -53,6 +55,13 @@ Maps a tuple, a state and a param, to a tuple, a state and a param.
 -}
 type (:->:) a p1 p2 = Map.Map (State a, p1) (State a, p2)
 
+liftD::(Ord a, Ord p1) => [(a, p1, a, p2)] -> (:->:) a p1 p2
+liftD ds = let
+    (xs, ys, ws, zs) = unzip4 ds
+    ks = zip (map return xs) ys
+    as = zip (map return ws) zs
+  in Map.fromList $ zip ks as
+
 {-|
 Next state function for deterministic delta
 -}
@@ -65,6 +74,14 @@ Non-Deterministic Delta
 Maps a tuple, a state and a param, to a tuple, a state list and a param.
 -}
 type (:-<:) a p1 p2 = Map.Map (State a, p1) (Set.Set (State a), p2)
+
+liftND::(Ord a, Ord p1) => [(a, p1, [a], p2)] -> (:-<:) a p1 p2
+liftND ds = let
+    (xs, ys, wss, zs) = unzip4 ds
+    ks = zip (map return xs) ys
+    f = Set.fromList . map return
+    as = zip (map f wss) zs
+  in Map.fromList $ zip ks as
 
 {-|
 Next state function for non-deterministic delta

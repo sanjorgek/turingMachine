@@ -35,10 +35,10 @@ module Math.Model.Automaton.Finite where
   ,finalState
   ,finalsStates
   -- ** Create deltas and lambdas
-	,liftD
+	,liftDelta
 	,liftL1
 	,liftL2
-	,liftDN
+	,liftNDelta
   -- ** Mininmize delta
   ,reachableDelta
   ,distinguishableDelta
@@ -52,27 +52,22 @@ import qualified Data.Set        as Set
 import           Data.Sigma
 import           Data.State
 
+tupleVoid:: (a,b,c) -> (a,b,c,())
+tupleVoid (a,b,c) = (a,b,c,())
+
 {-|
 Transition function that for every pair, a State and a Symbol by domain, decide
 next state in machine
 -}
 type Delta a = (:->:) a Symbol ()
 
-liftAux ds = let
-		(xs,ys,zs) = unzip3 ds
-		f = map return
-	in (zip (f xs) ys, zs, f)
-
 {-|
 Lift a list of 3-tuples to a Delta
 
 >>>let delta = liftD [(0,'0',0),(0,'1',1),(1,'0',1),(1,'1',0)]
 -}
-liftD::(Ord a) => [(a,Symbol,a)] -> Delta a
-liftD ds = let
-		(xys, zs, f) = liftAux ds
-		qzs = zip (f zs) (repeat ())
-	in Map.fromList (zip xys qzs)
+liftDelta::(Ord a) => [(a,Symbol,a)] -> Delta a
+liftDelta ds = liftD $ map tupleVoid ds
 
 {-|
 Transition function that for every pair, a State and a Symbol by domain, decide
@@ -85,12 +80,8 @@ Lift a list of 3-tuples to a non deterministic delta
 
 >>>let deltaN = liftDN [(0,'0',[0]),(0,'1',[1]),(1,'0',[1]),(1,'1',[0])]
 -}
-liftDN::(Ord a) => [(a,Symbol,[a])] -> DeltaN a
-liftDN ds = let
-		(xys, zs, f) = liftAux ds
-		g = Set.fromList . f
-		qzs = zip (map g zs) (repeat ())
-	in Map.fromList (zip xys qzs)
+liftNDelta::(Ord a) => [(a,Symbol,[a])] -> DeltaN a
+liftNDelta ds = liftND $ map tupleVoid ds
 
 {-|
 Transducer function

@@ -16,7 +16,7 @@ module Math.Model.Automaton.Stack
 (
   -- * Function
   Delta(..)
-  ,liftD
+  ,liftDelta
   ,Key(..)
   -- * Constructor
 	,StackA(..)
@@ -50,8 +50,8 @@ Takes a list of tuples and lift a Delta
 
 >>>let delta = liftD [(0,"(",'Z',0,"IZ"),(0,"",'Z',0,""),(0,"(",'I',0,"II"),(0,")",'I',0,"")]
 -}
-liftD:: Ord a => [(a, Wd, Symbol, a, Wd)]-> Delta a
-liftD xs = let
+liftDelta:: Ord a => [(a, Wd, Symbol, a, Wd)]-> Delta a
+liftDelta xs = let
     (as,bs,cs,ds,es) = unzip5 xs
     f = map Q
     g [] = Nothing
