@@ -13,13 +13,11 @@ Portability : portable
 Finite Automaton is a stateful machine where all transition means that machine
 reads a symbol
 -}
-module Math.Model.Automaton.Finite where
-{-|
-(
+module Math.Model.Automaton.Finite (
   -- * Recognizer
   -- ** Functions
 	Delta(..)
-	,DeltaN(..)
+	,NDelta(..)
   -- ** Constructor
 	,FiniteA(..)
 	,checkString
@@ -43,7 +41,7 @@ module Math.Model.Automaton.Finite where
   ,reachableDelta
   ,distinguishableDelta
   ,minimizeFinite
-) where -}
+) where
 import           Data.Delta
 import qualified Data.Foldable   as Fold
 import           Data.List
@@ -73,14 +71,14 @@ liftDelta ds = liftD $ map tupleVoid ds
 Transition function that for every pair, a State and a Symbol by domain, decide
 next list of states in machine
 -}
-type DeltaN a = (:-<:) a Symbol ()
+type NDelta a = (:-<:) a Symbol ()
 
 {-|
 Lift a list of 3-tuples to a non deterministic delta
 
 >>>let deltaN = liftDN [(0,'0',[0]),(0,'1',[1]),(1,'0',[1]),(1,'1',[0])]
 -}
-liftNDelta::(Ord a) => [(a,Symbol,[a])] -> DeltaN a
+liftNDelta::(Ord a) => [(a,Symbol,[a])] -> NDelta a
 liftNDelta ds = liftND $ map tupleVoid ds
 
 {-|
@@ -120,7 +118,7 @@ data FiniteA a =
 	-- |>>>let autFin = F delta (Set.fromList [Q 0]) (Q 0)
 	F (Delta a) (Final a) (State a)
 	-- |>>>let autFinN = FN deltaN (Set.fromList [Q 0]) (Q 0)
-	| FN (DeltaN a) (Final a) (State a) deriving(Show,Eq)
+	| FN (NDelta a) (Final a) (State a) deriving(Show,Eq)
 
 {-|
 Gets alphabet for some finite automaton
@@ -143,7 +141,7 @@ finalState dt q (x:xs) = finalState dt (nextD dt (q,x)) xs
 {-|
 Same as finalState but work with no deterministic delta
 -}
-finalsStates::(Ord a) => DeltaN a -> Set.Set (State a) -> Wd -> Set.Set (State a)
+finalsStates::(Ord a) => NDelta a -> Set.Set (State a) -> Wd -> Set.Set (State a)
 finalsStates _ sq [] = sq
 finalsStates dn sq (x:xs) = let
     nsq = Set.map (\q -> nextND dn (q,x)) sq
@@ -314,6 +312,18 @@ Minimize a finite automaton,
 -}
 minimizeFinite::(Ord a) => FiniteA a -> FiniteA a
 minimizeFinite = distinguishableDelta . reachableDelta
+
+nextStateSet::(Ord a) => NDelta a -> State a -> Symbol -> State (Set.Set a)
+nextStateSet nd q a = let
+    f QE = Set.empty
+    f (Q x) = Set.fromList [x]
+    sQ = nextND nd (q, a)
+    g sa sP = if sP==Set.empty
+      then sa
+      else let
+          p = Set.elemAt 0 sP
+        in g (Set.union (f p) sa) (Set.delete p sP)
+  in Q $ g Set.empty sQ
 
 convertFA::(Ord a) => FiniteA a -> FiniteA a
 convertFA (F d qf q0) = let
