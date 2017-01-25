@@ -35,6 +35,10 @@ module Data.Delta
   ,getSecondParam
   ,getStateDomain
   ,getStateRange
+  ,getFirstParamSet
+  ,getSecondParamSet
+  ,getStateDomainSet
+  ,getStateRangeSet
 ) where
 import           Data.List
 import qualified Data.Map.Strict as Map
