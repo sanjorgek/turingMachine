@@ -65,7 +65,7 @@ type Delta a = (:->:) a Symbol ()
 {-|
 Lift a list of 3-tuples to a Delta
 
->>>let delta = liftD [(0,'0',0),(0,'1',1),(1,'0',1),(1,'1',0)]
+>>>let delta = liftDelta [(0,'0',0),(0,'1',1),(1,'0',1),(1,'1',0)]
 -}
 liftDelta::(Ord a) => [(a,Symbol,a)] -> Delta a
 liftDelta ds = liftD $ map tupleVoid ds
@@ -79,7 +79,7 @@ type NDelta a = (:-<:) a Symbol ()
 {-|
 Lift a list of 3-tuples to a non deterministic delta
 
->>>let deltaN = liftDN [(0,'0',[0]),(0,'1',[1]),(1,'0',[1]),(1,'1',[0])]
+>>>let deltaN = liftNDelta [(0,'0',[0]),(0,'1',[1]),(1,'0',[1]),(1,'1',[0])]
 -}
 liftNDelta::(Ord a) => [(a,Symbol,[a])] -> NDelta a
 liftNDelta ds = liftND $ map tupleVoid ds
@@ -346,6 +346,6 @@ convertFA (F d sqf q0) = let
     f (x, y) = (Set.fromList [x], y)
   in
     FN (fmap f d) sqf q0
-convertFA (FN d sqf q0) = let
+convertFA (FN nd sqf q0) = let
   in
     F Map.empty sqf q0
