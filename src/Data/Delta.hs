@@ -37,11 +37,16 @@ module Data.Delta
   ,getSecondParam
   ,getStateDomain
   ,getStateRange
+  ,getStateRangeD
+  ,getStateRangeND
   ,getFirstParamSet
   ,getSecondParamSet
   ,getStateDomainSet
   ,getStateRangeSet
+  ,getStateRangeSetD
+  ,getStateRangeSetND
 ) where
+import qualified Data.Foldable   as Fold
 import           Data.List
 import qualified Data.Map.Strict as Map
 import qualified Data.Set        as Set
@@ -135,3 +140,15 @@ getStateRange = nub . fst . unzip . Map.elems
 
 getStateRangeSet::(Ord a) => Map.Map k (a, b) -> Set.Set a
 getStateRangeSet = Set.fromList . fst . unzip . Map.elems
+
+getStateRangeD::(Eq a) => (:->:) a p1 p2 -> [State a]
+getStateRangeD = getStateRange
+
+getStateRangeSetD::(Ord a) => (:->:) a p1 p2 -> Set.Set (State a)
+getStateRangeSetD = getStateRangeSet
+
+getStateRangeND::(Ord a) => (:-<:) a p1 p2 -> [State a]
+getStateRangeND = Set.toList . Fold.foldr Set.union Set.empty . fst . unzip . Map.elems
+
+getStateRangeSetND::(Ord a) => (:-<:) a p1 p2 -> Set.Set (State a)
+getStateRangeSetND = Fold.foldr Set.union Set.empty . fst . unzip . Map.elems
