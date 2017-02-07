@@ -342,7 +342,10 @@ nextStateSet::(Ord a) => NDelta a -> State a -> Symbol -> Set.Set a
 nextStateSet nd q a = setState2Set $ nextND nd (q, a)
 
 convertFA::(Ord a) => FiniteA a -> FiniteA a
-convertFA (F d qf q0) = let
+convertFA (F d sqf q0) = let
     f (x, y) = (Set.fromList [x], y)
   in
-    FN (fmap f d) qf q0
+    FN (fmap f d) sqf q0
+convertFA (FN d sqf q0) = let
+  in
+    F Map.empty sqf q0
