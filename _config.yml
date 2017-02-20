@@ -1,14 +1,14 @@
 # Site
-title:              Moon
-bio:                'Minimal, one column jekyll theme.'
-description:        "Moon is a minimal, one column jekyll theme for your blog."
+title:              turingMachine
+bio:                'Implementación de Teoria de lenguajes en haskell.'
+description:        "Implementación de Teoria de lenguajes en haskell. Incluye: Automatas finitos, de Stack y Maquinas de Turing"
 reading_time:       true
 words_per_minute:   200
 logo:               'assets/img/logo.png'
 background:         'assets/img/placeholder-big.jpg'
 tiled_bg:           false   # Set this true if you want to tile your background image, otherwise it will be covered
 locale:             en_US
-url:                https://taylantatli.github.io/Moon
+url:                http://sanjorgek.com/turingMachine
 
 # Jekyll
 permalink:          /:title/
@@ -37,20 +37,20 @@ disqus_shortname:   taylantatli
   #ad-client:
   #ad-slot:
 #bing-verify:
-#email:
-twitter:            username
-facebook:           username
-github-url:         username
-#stackoverflow:     123456/username   from a "http://stackoverflow.com/users/123456/username" link
-#linkedin:          username
+email:              'sanjorgek@ciencias.unam.mx'
+twitter:            sanjorgealv
+facebook:           sanjorgek
+github-url:         sanjorgek
+stackoverflow:      6206633/jorge-santiago
+linkedin:           sanjorgek
 #xing:              username
-instagram:          username
+instagram:          sanjorgek
 #lastfm:            username
-#tumblr:            username
-#medium:            '@username'
+tumblr:             sanjorgeloop
+medium:             '@sanjorgek'
 #pinterest:         username
 #foursquare:        username
-steam:              username
+#steam:             username
 #dribbble:          username
 #youtube:           username
 #youtube-channel:   channel
