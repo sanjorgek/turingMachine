@@ -1,30 +1,45 @@
-# Moon Jekyll Theme [![Donate](https://img.shields.io/badge/paypal-donate-blue.svg)](https://www.paypal.me/taylantatli/0usd)  
-  
-## `Sorry guys but there will be no update until I buy a new laptop.`
-    
-######(If you like this theme or using it, please give a :star: for motivation.)
+# Turing Machine Model
+An implementation of Turing Machine and Automaton for Language Theory
 
-**[Moon](https://taylantatli.github.io/Moon)** is a minimal, one column jekyll theme.
+  [![Build Status](https://travis-ci.org/sanjorgek/turingMachine.svg?branch=master)](https://travis-ci.org/sanjorgek/turingMachine)
+  [![Code Climate](https://codeclimate.com/github/sanjorgek/turingMachine/badges/gpa.svg)](https://codeclimate.com/github/sanjorgek/turingMachine)
+  [![Issue Count](https://codeclimate.com/github/sanjorgek/turingMachine/badges/issue_count.svg)](https://codeclimate.com/github/sanjorgek/turingMachine)
+  [![CircleCI](https://circleci.com/gh/sanjorgek/turingMachine.svg?style=svg)](https://circleci.com/gh/sanjorgek/turingMachine)
 
-## Features
-* Minimal, you can focus on your content
-* Responsive
-* Disqus integration
-* Syntax highlighting
-* Optional post image
-* Social icons
-* Page for sharing projects
-* Optional background image
-* Simple navigation menu
-* MathJax support
+## Math Models
+### Finite Automaton
 
-## Preview
+Finite State machine, with no memory.
+Exist:
 
-![screenshot of Moon](https://cloud.githubusercontent.com/assets/754514/14509720/61c61058-01d6-11e6-93ab-0918515ecd56.png)    
-![screenshot of Moon](https://cloud.githubusercontent.com/assets/754514/14509716/61ac6c8e-01d6-11e6-879f-8308883de790.png)
+1. Recognizer
+2. Generator
+3. Transducer
 
-See a [live version of Moon](https://taylantatli.github.io/Moon) hosted on GitHub.
+### Stack Automaton
+Stack memory machine with states
 
-## Getting Started
+### Turing Machine
 
-To learn how to install and use this theme check out the [Setup Guide](https://taylantatli.github.io/Moon/moon-theme/) for more information.
+## To Do
+
+- [ ] Finite Automaton
+  - [x] Lift delta
+  - [x] deterministic automaton def
+  - [x] Non-deterministic automaton def
+  - [x] Transductor
+  - [ ] Transductor equivalences
+  - [x] Recheable states
+  - [x] Distinguishable states
+  - [x] Minimize deterministic
+  - [ ] Non-deterministic to deterministic automaton, and viceversa
+- [ ] Stack Automaton
+  - [x] Lift delta
+  - [x] Deterministic stack automaton def
+  - [ ] Non-deterministic stack automaton def
+  - [ ] Non-deterministic to deterministic stack automaton
+- [ ] Turing Machine
+  - [ ] Class def
+  - [ ] Tape def
+  - [ ] Delta def
+  - [ ] Accept word

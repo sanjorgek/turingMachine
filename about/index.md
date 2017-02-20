@@ -1,37 +1,40 @@
 ---
 layout: page
-title: About the Theme
-tags: [about, Jekyll, theme, moon]
+title: Acerca
+tags: [about, turing, machine, haskell]
 date: 2016-03-21
 comments: false
 ---
     
-<center><a href="http://taylantatli.github.io/Moon"><b>Moon</b></a> is a minimal, one column jekyll theme.</center>
+<center><a href="http://sanjorgek.com/tunringMachine"><b>turingMachine</b></a> es una implementacion en haskell de el contenido de las clases de Teoria de Lenguajes.</center>
 
 ## Features
-* Minimal, you can focus on your content
-* Responsive
-* Disqus integration
-* Syntax highlighting
-* Optional post image
-* Social icons
-* Page for sharing projects
-* Optional background image
-* Simple navigation menu
-* MathJax support
+- [ ] Autotmata finito
+  - [x] Crear delta
+  - [x] Def Automata finito determinista
+  - [x] Def Automata finito no-determinista
+  - [x] Transductor
+  - [ ] Equivalencias de transductor
+  - [x] Estados alcanzables
+  - [x] Estados distinguibles
+  - [x] Minimizar autoamata
+  - [ ] No-determinista to determinista y viceversa
+- [ ] Automata Stack
+  - [x] Crear delta
+  - [x] Def Automata finito de stack
+- [ ] Maquina de Turing
+  - [ ] Def de la clase
+  - [ ] Def de la Cinta
+  - [ ] Def de la delta
+  - [ ] Aceptar palabra
 
-## Preview
+Ve la [documentacion oficial](https://hackage.haskell.org/package/turingMachine) en hackage.
 
-{% capture images %}
-    https://cloud.githubusercontent.com/assets/754514/14509720/61c61058-01d6-11e6-93ab-0918515ecd56.png
-    https://cloud.githubusercontent.com/assets/754514/14509716/61ac6c8e-01d6-11e6-879f-8308883de790.png
-{% endcapture %}
-{% include gallery images=images caption="Screenshots of Moon Theme" cols=2 %}
+## Iniciar
 
-See a [live version of Moon](http://taylantatli.github.io/Moon) hosted on GitHub.
+Instalar:
 
-## Getting Started
-
-To learn how to install and use this theme check out the [Setup Guide](http://taylantatli.me/Moon/moon-theme/) for more information.
-      
-[Install Moon](https://github.com/TaylanTatli/Moon){: .btn}
+```bash
+cabal update
+cabal install turingMachine
+```
