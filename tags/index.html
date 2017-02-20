@@ -1,8 +1,8 @@
 ---
 layout: page
-title: Tag Archive
-description: "An archive of posts sorted by tag."
-comments: false
+title: Etiquetas
+description: "Un listado de los articulos ordenados por etiquetas."
+comments: true
 ---
 
 {% capture site_tags %}{% for tag in site.tags %}{{ tag | first }}{% unless forloop.last %},{% endunless %}{% endfor %}{% endcapture %}
