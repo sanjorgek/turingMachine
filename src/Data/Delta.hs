@@ -31,6 +31,7 @@ module Data.Delta
 	-- ** Constructor
 	,(:*>:)(..)
   -- ** Functions
+  ,liftL
   ,nextT
   -- * Auxiliar functions
   ,getFirstParam
@@ -98,6 +99,13 @@ nextND dt k = if Map.member k dt then fst (dt Map.! k) else Set.insert QE Set.em
 Map a tuple, a state and a param, to some output
 -}
 type (:*>:) a p o = Map.Map (State a, p) o
+
+liftL :: (Ord a, Ord p) => [(a, p, o)] -> (:*>:) a p o
+liftL ds = let
+    (xs, ys, zs) = unzip3 ds
+    f = map return
+    nds = zip (zip (f xs) ys) zs
+  in Map.fromList nds
 
 {-|
 For simple map with Chars range

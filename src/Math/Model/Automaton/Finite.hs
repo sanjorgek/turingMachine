@@ -86,15 +86,14 @@ Transducer function
 -}
 type Lambda1 a = (:*>:) a () Symbol
 
+tupleMidVoid :: (a, b) -> (a, (), b)
+tupleMidVoid (a, b) = (a, (), b)
+
 {-|
 Lift simple transducer function
 -}
 liftL1::(Ord a) => [(a, Symbol)] -> Lambda1 a
-liftL1 ds = let
-		(xs, ys) = unzip ds
-		f = map return
-		nds = zip (zip (f xs) (repeat ())) ys
-	in Map.fromList nds
+liftL1 = liftL . map tupleMidVoid
 
 {-|
 Transducer function with output at transition
@@ -105,11 +104,7 @@ type Lambda2 a = (:*>:) a Symbol Symbol
 Lift second transducer function
 -}
 liftL2::(Ord a) => [(a, Symbol, Symbol)] -> Lambda2 a
-liftL2 ds = let
-		(xs, ys, zs) = unzip3 ds
-		f = map return
-		nds = zip (zip (f xs) ys) zs
-	in Map.fromList nds
+liftL2 = liftL
 
 {-|
 Finite deterministic Automaton
