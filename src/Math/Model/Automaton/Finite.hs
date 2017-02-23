@@ -14,7 +14,7 @@ Finite Automaton is a stateful machine where all transition means that machine
 reads a symbol
 -}
 module Math.Model.Automaton.Finite
-{-| (
+(
   -- * Recognizer
   -- ** Functions
 	Delta(..)
@@ -42,9 +42,9 @@ module Math.Model.Automaton.Finite
   ,reachableDelta
   ,distinguishableDelta
   ,minimizeFinite
-)
--}
-where
+  -- ** Equivalence
+  ,convertFA
+) where
 import           Data.Delta
 import qualified Data.Foldable   as Fold
 import           Data.List
@@ -328,6 +328,9 @@ state2Set::(Ord a) => State a -> Set.Set a
 state2Set QE = Set.empty
 state2Set (Q x) = Set.fromList [x]
 
+state2StateSet::(Ord a) => State a -> State (Set.Set a)
+state2StateSet = Q . state2Set
+
 setState2Set'::(Ord a) => Set.Set a -> Set.Set (State a) -> Set.Set a
 setState2Set' sa sP = if sP==Set.empty
   then sa
@@ -341,6 +344,18 @@ setState2Set = setState2Set' Set.empty
 nextStateSet::(Ord a) => NDelta a -> State a -> Symbol -> Set.Set a
 nextStateSet nd q a = setState2Set $ nextND nd (q, a)
 
+updateDelta'::(Ord a) => Alphabet -> Set.Set (State a) -> NDelta a -> Delta (Set.Set a) -> Delta (Set.Set a)
+updateDelta' alp sq nd d = let
+    f = nextND nd
+    g q a = f (q, a)
+  in d
+
+convertFA'::(Ord a) => FiniteA a -> FiniteA (Set.Set a)
+convertFA' (FN nd sqf q0) = let
+    qs0 = state2StateSet q0
+    alp = getFirstParamSet nd
+  in F Map.empty Set.empty qs0
+
 convertFA::(Ord a) => FiniteA a -> FiniteA a
 convertFA (F d sqf q0) = let
     f (x, y) = (Set.fromList [x], y)
@@ -348,4 +363,4 @@ convertFA (F d sqf q0) = let
     FN (fmap f d) sqf q0
 convertFA (FN nd sqf q0) = let
   in
-    F Map.empty sqf q0
+    F Map.empty Set.empty q0
