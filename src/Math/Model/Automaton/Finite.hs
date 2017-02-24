@@ -348,12 +348,18 @@ updateDelta::(Ord a) => NDelta a -> StateSS a -> Delta (SetState a) -> Delta (Se
 updateDelta nd qsq d = let
     dDom = getStateDomainSet d
     newD = updateDeltaByState nd qsq d
-    newDDom = getStateDomainSet newD
-    difDom = Set.difference dDom newDDom
+    newDDom = getStateRangeSetD newD
+    difS = Set.difference (Set.difference newDDom dDom) (Set.fromList [qsq])
     f delta psp = updateDelta nd psp delta
-  in if Set.null difDom
+  in if Set.null difS
     then newD
-    else Fold.foldl f d difDom
+    else Fold.foldl f newD difS
+
+isNewFinal::(Ord a) => Set.Set a -> StateSS a -> Bool
+isNewFinal _ QE = False
+isNewFinal sa (Q sq) = let
+    sInter = Set.intersection sa (setState2Set sq)
+  in not $ Set.null sInter
 
 convertFA'::(Ord a) => FiniteA a -> FiniteA (SetState a)
 convertFA' (FN nd sqf q0) = let
@@ -361,7 +367,9 @@ convertFA' (FN nd sqf q0) = let
     newQ0 = Q $ Set.fromList [q0]
     newD = updateDelta nd newQ0 Map.empty
     sf = setState2Set sqf
-  in F newD Set.empty newQ0
+    dDom = getStateDomainSet newD
+    newSQF = Set.filter(isNewFinal sf) dDom
+  in minimizeFinite $ F newD newSQF newQ0
 
 convertFA::(Ord a) => FiniteA a -> FiniteA a
 convertFA (F d sqf q0) = let
