@@ -156,7 +156,7 @@ getStateRangeSetD::(Ord a) => (:->:) a p1 p2 -> Set.Set (State a)
 getStateRangeSetD = getStateRangeSet
 
 getStateRangeND::(Ord a) => (:-<:) a p1 p2 -> [State a]
-getStateRangeND = Set.toList . Fold.foldr Set.union Set.empty . fst . unzip . Map.elems
+getStateRangeND = Set.toList . Set.unions . fst . unzip . Map.elems
 
 getStateRangeSetND::(Ord a) => (:-<:) a p1 p2 -> Set.Set (State a)
-getStateRangeSetND = Fold.foldr Set.union Set.empty . fst . unzip . Map.elems
+getStateRangeSetND = Set.unions . fst . unzip . Map.elems

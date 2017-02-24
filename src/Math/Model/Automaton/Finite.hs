@@ -30,8 +30,8 @@ module Math.Model.Automaton.Finite (
 	,translate
   -- * Auxiliar functions
   ,getAlphabet
-  ,finalState
-  ,finalsStates
+  ,endState
+  ,endStates
   -- ** Create deltas and lambdas
 	,liftDelta
 	,liftL1
@@ -42,10 +42,12 @@ module Math.Model.Automaton.Finite (
   ,distinguishableDelta
   ,minimizeFinite
   -- ** Equivalence
+  ,convertFA'
   ,convertFA
 ) where
 import           Data.Delta
 import qualified Data.Foldable   as Fold
+import           Data.Helper
 import           Data.List
 import qualified Data.Map.Strict as Map
 import qualified Data.Set        as Set
@@ -131,19 +133,19 @@ getAlphabetList (FN dn _ _) = getFirstParam dn
 {-|
 For some delta, an initial state anf a word returns final state for that word
 -}
-finalState::(Ord a) => Delta a -> State a -> Wd -> State a
-finalState _ q [] = q
-finalState dt q (x:xs) = finalState dt (nextD dt (q,x)) xs
+endState::(Ord a) => Delta a -> State a -> Wd -> State a
+endState _ q [] = q
+endState dt q (x:xs) = endState dt (nextD dt (q,x)) xs
 
 {-|
-Same as finalState but work with no deterministic delta
+Same as endState but work with no deterministic delta
 -}
-finalsStates::(Ord a) => NDelta a -> Set.Set (State a) -> Wd -> Set.Set (State a)
-finalsStates _ sq [] = sq
-finalsStates dn sq (x:xs) = let
+endStates::(Ord a) => NDelta a -> SetState a -> Wd -> SetState a
+endStates _ sq [] = sq
+endStates dn sq (x:xs) = let
     nsq = Set.map (\q -> nextND dn (q,x)) sq
   in
-    finalsStates dn ((Set.unions . Set.toList) nsq) xs
+    endStates dn ((Set.unions . Set.toList) nsq) xs
 
 {-|
 Executes a automaton over a word
@@ -155,11 +157,11 @@ False
 -}
 checkString::(Ord a) => FiniteA a -> Wd -> Bool
 checkString (F d qF s) ws = let
-		q = finalState d s ws
+		q = endState d s ws
 		f y = (not.isError) y && terminal qF y
 	in f q
 checkString (FN dn qF s) ws = let
-		sq = finalsStates dn (Set.fromList [s]) ws
+		sq = endStates dn (Set.fromList [s]) ws
 		qs = Set.toList sq
 		f y = (not.isError) y && terminal qF y
 		g = any f
@@ -314,33 +316,52 @@ state2Set::(Ord a) => State a -> Set.Set a
 state2Set QE = Set.empty
 state2Set (Q x) = Set.fromList [x]
 
-state2StateSet::(Ord a) => State a -> State (Set.Set a)
-state2StateSet = Q . state2Set
-
-setState2Set'::(Ord a) => Set.Set a -> Set.Set (State a) -> Set.Set a
+setState2Set'::(Ord a) => Set.Set a -> SetState a -> Set.Set a
 setState2Set' sa sP = if sP==Set.empty
   then sa
   else let
       p = Set.elemAt 0 sP
     in setState2Set' (Set.union (state2Set p) sa) (Set.delete p sP)
 
-setState2Set::(Ord a) => Set.Set (State a) -> Set.Set a
+setState2Set::(Ord a) => SetState a -> Set.Set a
 setState2Set = setState2Set' Set.empty
 
-nextStateSet::(Ord a) => NDelta a -> State a -> Symbol -> Set.Set a
-nextStateSet nd q a = setState2Set $ nextND nd (q, a)
+nextStateSet::(Ord a) => NDelta a -> StateSS a -> Symbol -> SetState a
+nextStateSet nd qsq a = let
+    f q = nextND nd (q, a)
+    g = Set.map f
+    Q sq = fmap g qsq
+  in unionsFold sq
 
-updateDelta'::(Ord a) => Alphabet -> Set.Set (State a) -> NDelta a -> Delta (Set.Set a) -> Delta (Set.Set a)
-updateDelta' alp sq nd d = let
-    f = nextND nd
-    g q a = f (q, a)
-  in d
+updateDeltaBySym::(Ord a) => NDelta a -> StateSS a -> Symbol -> Delta (SetState a) -> Delta (SetState a)
+updateDeltaBySym nd qsq a d = let
+    k = (qsq, a)
+    psp = Q $ nextStateSet nd qsq a
+  in Map.insert k (psp, ()) d
 
-convertFA'::(Ord a) => FiniteA a -> FiniteA (Set.Set a)
+updateDeltaByState::(Ord a) => NDelta a -> StateSS a -> Delta (SetState a) -> Delta (SetState a)
+updateDeltaByState nd qsq delta = let
+    f d a = updateDeltaBySym nd qsq a d
+  in Fold.foldl f delta (getFirstParamSet nd)
+
+updateDelta::(Ord a) => NDelta a -> StateSS a -> Delta (SetState a) -> Delta (SetState a)
+updateDelta nd qsq d = let
+    dDom = getStateDomainSet d
+    newD = updateDeltaByState nd qsq d
+    newDDom = getStateDomainSet newD
+    difDom = Set.difference dDom newDDom
+    f delta psp = updateDelta nd psp delta
+  in if Set.null difDom
+    then newD
+    else Fold.foldl f d difDom
+
+convertFA'::(Ord a) => FiniteA a -> FiniteA (SetState a)
 convertFA' (FN nd sqf q0) = let
-    qs0 = state2StateSet q0
     alp = getFirstParamSet nd
-  in F Map.empty Set.empty qs0
+    newQ0 = Q $ Set.fromList [q0]
+    newD = updateDelta nd newQ0 Map.empty
+    sf = setState2Set sqf
+  in F newD Set.empty newQ0
 
 convertFA::(Ord a) => FiniteA a -> FiniteA a
 convertFA (F d sqf q0) = let
