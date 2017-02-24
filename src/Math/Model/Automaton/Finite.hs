@@ -43,7 +43,6 @@ module Math.Model.Automaton.Finite
   ,distinguishableDelta
   ,minimizeFinite
   -- ** Equivalence
-  ,convertFA'
   ,convertFA
 ) where
 import           Data.Delta
@@ -385,11 +384,43 @@ convertFA' (FN nd sqf q0) = let
     newSQF = Set.filter(isNewFinal sf) dDom
   in minimizeFinite $ F newD newSQF newQ0
 
-convertFA::(Ord a) => FiniteA a -> FiniteA a
+enumDom::(Ord a) => Set.Set (StateSS a) -> StateSS a -> Int
+enumDom sqsq qsq =  Set.findIndex qsq sqsq
+
+succN:: (Enum a) => a -> Int -> a
+succN a 0 = a
+succN a n = succN (succ a) (n-1)
+
+newLabel::(Enum a, Ord a) => a -> Set.Set (StateSS a) -> StateSS a -> State a
+newLabel o sqsq qsq = Q $ succN o $ enumDom sqsq qsq
+
+mapSetLabel::(Enum a, Ord a) => a -> Set.Set (StateSS a) -> Set.Set (StateSS a) -> Set.Set (State a)
+mapSetLabel o sqsq = Set.map $ newLabel o sqsq
+
+mapDeltaLabel::(Enum a, Ord a) => a -> Set.Set (StateSS a) -> Delta (SetState a) -> Delta a
+mapDeltaLabel o sqsq rareD = let
+    f (qsq, x) = (newLabel o sqsq qsq, x)
+  in Map.mapKeys f (Map.map f rareD)
+
+state2Enum::(Enum a) => State a -> a
+state2Enum QE = toEnum 0
+state2Enum (Q a) = a
+
+mapAFLabel::(Enum a, Ord a) => State a -> FiniteA (SetState a) -> FiniteA a
+mapAFLabel q (F d sqf q0) = let
+    o = state2Enum q
+    sqsq = getStateDomainSet d
+  in F (mapDeltaLabel o sqsq d) (mapSetLabel o sqsq sqf) (newLabel o sqsq q0)
+
+{-|
+Finite Autmaton Equivalence
+-}
+convertFA::(Enum a, Ord a) => FiniteA a -> FiniteA a
 convertFA (F d sqf q0) = let
     f (x, y) = (Set.fromList [x], y)
   in
     FN (fmap f d) sqf q0
-convertFA (FN nd sqf q0) = let
+convertFA afn@(FN nd sqf q0) = let
+    afRare = convertFA' afn
   in
-    F Map.empty Set.empty q0
+    mapAFLabel q0 afRare
