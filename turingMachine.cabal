@@ -24,6 +24,7 @@ source-repository head
 
 library
   exposed-modules:     Data.Delta
+                       , Data.Helper
                        , Data.Sigma
                        , Data.State
                        , Math.Model.Automaton.Finite
@@ -78,6 +79,7 @@ test-suite finite
   build-depends:       base
                        , hspec
                        , QuickCheck
+                       , QuickCheckVariant
                        , containers
                        , turingMachine
   default-language:    Haskell2010
