@@ -255,9 +255,6 @@ distinguishableSet2 alp nd partSet pi = let
     (sx, sy) = Set.partition (f qM) pi
   in Set.delete Set.empty $ Set.fromList [sx, sy]
 
-unionsFold:: (Ord a, Fold.Foldable t) => t (Set.Set a) -> Set.Set a
-unionsFold = Fold.foldr Set.union Set.empty
-
 lDistinguishableSet alp d partSet = let
     g = distinguishableSet alp d partSet
     f = unionsFold . Set.map g
@@ -385,7 +382,7 @@ convertFA' (FN nd sqf q0) = let
   in minimizeFinite $ F newD newSQF newQ0
 
 enumDom::(Ord a) => Set.Set (StateSS a) -> StateSS a -> Int
-enumDom sqsq qsq =  Set.findIndex qsq sqsq
+enumDom sqsq qsq = Set.findIndex qsq sqsq
 
 succN:: (Enum a) => a -> Int -> a
 succN a 0 = a
@@ -409,7 +406,7 @@ state2Enum (Q a) = a
 mapAFLabel::(Enum a, Ord a) => State a -> FiniteA (SetState a) -> FiniteA a
 mapAFLabel q (F d sqf q0) = let
     o = state2Enum q
-    sqsq = getStateDomainSet d
+    sqsq = Set.union (getStateDomainSet d) $ Set.union (getStateRangeSetD d) sqf
   in F (mapDeltaLabel o sqsq d) (mapSetLabel o sqsq sqf) (newLabel o sqsq q0)
 
 {-|
