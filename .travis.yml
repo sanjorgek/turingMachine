@@ -5,3 +5,5 @@ install:
   - cabal install hspec
   - cabal install QuickCheck
   - cabal install containers
+  - cabal install hspecVariant
+  - cabal install QuickCheckVariant
