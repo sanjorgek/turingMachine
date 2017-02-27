@@ -13,7 +13,8 @@ Portability : portable
 Finite Automaton is a stateful machine where all transition means that machine
 reads a symbol
 -}
-module Math.Model.Automaton.Finite (
+module Math.Model.Automaton.Finite
+{-| (
   -- * Recognizer
   -- ** Functions
 	Delta(..)
@@ -41,7 +42,9 @@ module Math.Model.Automaton.Finite (
   ,reachableDelta
   ,distinguishableDelta
   ,minimizeFinite
-) where
+)
+-}
+where
 import           Data.Delta
 import qualified Data.Foldable   as Fold
 import           Data.List
@@ -194,8 +197,8 @@ translate (Mealy d l qF s) ws = let
 		translate' dt lm q (x:xs) ys = translate' dt lm (nextD dt (q, x)) xs (ys++[nextT lm (q,x)])
 
 reachableStates1 alp d xs = let
-    qs = (xs ++ [nextD d (y,x) | x<-alp, y<-xs])\\[QE]
-    nqs = nub qs
+    qs = xs ++ [nextD d (y,x) | x<-alp, y<-xs]
+    nqs = (\\) (nub qs) [QE]
   in
     if nqs==xs then nqs else reachableStates1 alp d nqs
 
@@ -210,22 +213,22 @@ Minimaize a delta for some finite automaton.
 Gets a delta with all reachable states from initial state.
 -}
 reachableDelta::(Ord a) => FiniteA a -> FiniteA a
-reachableDelta af@(F d sf si) = let
-    allState = getStateDomain d
+reachableDelta af@(F d sqf qi) = let
     alp = getAlphabetList af
-    qs = reachableStates1 alp d [si]
-    ks = [(x,y) | x<-qs, y<-alp]
-    nDelta = foldl (\x k -> Map.insert k (nextD d k,()) x) Map.empty ks
+    qs = reachableStates1 alp d [qi]
+    allUnused = (\\) (getStateDomain d) qs
+    ks = [(x,y) | x<-allUnused, y<-alp]
+    nDelta = foldl (flip Map.delete) d ks
   in
-    F nDelta (Set.intersection sf (Set.fromList qs)) si
-reachableDelta afn@(FN dn sf si) = let
-    allState = getStateDomain dn
+    F nDelta (Set.intersection sqf (Set.fromList qs)) qi
+reachableDelta afn@(FN dn sqf qi) = let
     alp = getAlphabetList afn
-    qs = reachableStates2 alp dn [si]
-    ks = [(x,y) | x<-qs, y<-alp]
-    nDelta = foldl (\x k -> Map.insert k (nextND dn k,()) x) Map.empty ks
+    qs = reachableStates2 alp dn [qi]
+    allUnused = (\\) (getStateDomain dn) qs
+    ks = [(x,y) | x<-allUnused, y<-alp]
+    nDelta = foldl (flip Map.delete) dn ks
   in
-    FN nDelta (Set.intersection sf (Set.fromList qs)) si
+    FN nDelta (Set.intersection sqf (Set.fromList qs)) qi
 
 fstPartition sf qs = let
     (xs,ys) = partition (terminal sf) qs
@@ -301,12 +304,12 @@ distinguishableDelta afn@(FN dn sf si) = let
 {-|
 Minimize a finite automaton,
 
-1. Delete unreachable states and their transitions
+1. Delete redundant states
 
-2. Delete redundant states
+2. Delete unreachable states and their transitions
 -}
 minimizeFinite::(Ord a) => FiniteA a -> FiniteA a
-minimizeFinite = distinguishableDelta . reachableDelta
+minimizeFinite = reachableDelta . distinguishableDelta
 
 state2Set::(Ord a) => State a -> Set.Set a
 state2Set QE = Set.empty

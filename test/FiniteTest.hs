@@ -33,7 +33,7 @@ instance (Variant a) => Variant [a] where
   valid = do
     x <- valid
     xs <- valid
-    (oneof . map return) [[], [x], x:xs]
+    (oneof . map return) [x:xs, []]
   invalid = do
     x <- invalid
     xs <- invalid
@@ -102,7 +102,7 @@ finiteAut = describe "Finite automaton check" $
     checkString pairWord "11011" `shouldBe` True
 
 transDetTest = describe "Transform" $ do
-  propValid "reachable" $
+  prop "reachable" $
     \ af w -> checkString (reachableDelta (af::FiniteA Int)) w == checkString af w
   propValid "distinguishable" $
     \ af w -> checkString (distinguishableDelta (af::FiniteA Int)) w == checkString af w
