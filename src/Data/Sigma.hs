@@ -87,7 +87,7 @@ closureAlph sig = "":closureAlph' (Set.toList sig)
 For some alphabet __S__ and a natural number __n__ take all words of length
 __n__ or less
 -}
-lessKWords::Alphabet -> Integer -> [Wd]
+lessKWords::Alphabet -> Int -> [Wd]
 lessKWords sig k = let
     f x y = genericLength y <= x
   in

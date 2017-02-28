@@ -15,6 +15,8 @@ Cardinal def
 module Data.Cardinal where
 import           Data.Monoid
 
+data Essence = Empty | Occupied deriving(Show, Eq, Ord)
+
 {-|
 Cardinal def:
 
