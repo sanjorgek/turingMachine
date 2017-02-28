@@ -23,7 +23,8 @@ source-repository head
   location:            git@github.com:sanjorgek/turingMachine.git
 
 library
-  exposed-modules:     Data.Delta
+  exposed-modules:     Data.Cardinal
+                       , Data.Delta
                        , Data.Helper
                        , Data.Sigma
                        , Data.State
