@@ -127,8 +127,28 @@ cardinalityTest = describe "Cardinal" $ do
     automatonEssence finiteLang `shouldBe` Occupied
   it "cardinality" $ do
     automatonCardinality pairWord `shouldBe` Numerable
-    automatonCardinality emptyLang1 `shouldBe` Fin
-    automatonCardinality finiteLang `shouldBe` Fin
+    automatonCardinality emptyLang1 `shouldBe` Fin 0
+    automatonCardinality finiteLang `shouldBe` Fin 1
+  prop "if empty then Fin 0" $
+    \ af -> let
+        e = automatonEssence (af:: FiniteA Int)
+        c = automatonCardinality af
+      in (e /= Empty) || (c == Fin 0)
+  prop "if (Fin n) where n>0 then Occupied" $
+    \ af -> let
+        e = automatonEssence (af:: FiniteA Int)
+        c@(Fin n) = automatonCardinality af
+      in (c /= Numerable) || (n == 0) || (e == Occupied)
+  prop "if Numerable then Occupied" $
+    \ af -> let
+        e = automatonEssence (af:: FiniteA Int)
+        c = automatonCardinality af
+      in (c /= Numerable) || (e == Occupied)
+  prop "if Numerable then not Empty" $
+    \ af -> let
+        e = automatonEssence (af:: FiniteA Int)
+        c = automatonCardinality af
+      in (c /= Numerable) || (e /= Empty)
 
 
 main::IO ()

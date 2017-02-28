@@ -448,6 +448,8 @@ acceptWord af (w:ws) = checkString af w || acceptWord af ws
 
 allStateSize s = setGenericSize $ allStateSet s
 
+filterWords af = filter (checkString af)
+
 automatonCardinality::(Ord a) => FiniteA a -> Discrete
 automatonCardinality af = let
     afm = minimizeFinite af
@@ -457,4 +459,4 @@ automatonCardinality af = let
     acceptedWord = acceptWord afm $ concatMap g [n..(2*(n-1))]
   in if acceptedWord
     then Numerable
-    else Fin
+    else Fin $ genericLength $ filterWords afm $ lessKWords alp (n-1)

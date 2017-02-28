@@ -81,7 +81,9 @@ Gives the Kleene Closure for all alphabets. closureAlph is a infinite list of
 words.
 -}
 closureAlph::Alphabet -> [Wd]
-closureAlph sig = "":closureAlph' (Set.toList sig)
+closureAlph sig = if Set.null sig
+  then [""]
+  else "":closureAlph' (Set.toList sig)
 
 {-|
 For some alphabet __S__ and a natural number __n__ take all words of length
