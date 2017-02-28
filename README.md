@@ -32,7 +32,7 @@ Stack memory machine with states
   - [x] Recheable states
   - [x] Distinguishable states
   - [x] Minimize deterministic
-  - [ ] Non-deterministic to deterministic automaton, and viceversa
+  - [x] Non-deterministic to deterministic automaton, and viceversa
 - [ ] Stack Automaton
   - [x] Lift delta
   - [x] Deterministic stack automaton def
