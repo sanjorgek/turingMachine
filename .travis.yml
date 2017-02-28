@@ -2,8 +2,8 @@ language: haskell
 ghc:
   - 7.6
 install:
-  - cabal install hspec
-  - cabal install QuickCheck
   - cabal install containers
-  - cabal install hspecVariant
+  - cabal install QuickCheck
+  - cabal install hspec
   - cabal install QuickCheckVariant
+  - cabal install hspecVariant

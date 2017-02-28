@@ -122,8 +122,8 @@ data FiniteA a =
 Gets alphabet for some finite automaton
 -}
 getAlphabet:: FiniteA a -> Alphabet
-getAlphabet (F d _ _) = Set.fromList (getFirstParam d)
-getAlphabet (FN dn _ _) = Set.fromList (getFirstParam dn)
+getAlphabet (F d _ _) = getFirstParamSet d
+getAlphabet (FN dn _ _) = getFirstParamSet dn
 
 getAlphabetList::FiniteA a -> [Symbol]
 getAlphabetList (F d _ _) = getFirstParam d
@@ -230,47 +230,48 @@ reachableDelta afn@(FN dn sqf qi) = let
   in
     FN nDelta (Set.intersection sqf (Set.fromList qs)) qi
 
-fstPartition sf qs = let
-    (xs,ys) = partition (terminal sf) qs
+fstPartitionSet sf qs = let
+    (xs,ys) = Set.partition (terminal sf) qs
   in
-    nub [xs, ys] \\ [[]]
+    Set.delete Set.empty $ Set.fromList [xs, ys]
 
-samePartition [] _ _ = False
-samePartition (x:xs) q1 q2
-  |elem q1 x && elem q2 x = True
-  |otherwise = samePartition xs q1 q2
+partitionSet q = Set.filter (Set.member q)
+partitionSet2 q = Set.filter (Set.isSubsetOf q)
 
-reachState alp d q = [nextD d (q, a) | a<- alp]
+distinguishableSet alp d partSet pi = let
+    qM = Set.findMin pi
+    eqD p q = (==) (partitionSet p partSet) (partitionSet q partSet)
+    g p q a = eqD (nextD d (p, a)) (nextD d (q, a))
+    f p q = Fold.all (g p q) alp
+    (sx, sy) = Set.partition (f qM) pi
+  in Set.delete Set.empty $ Set.fromList [sx, sy]
 
-reachState2 alp d q = (Set.toList . Set.unions) [nextND d (q, a) | a<- alp]
+distinguishableSet2 alp nd partSet pi = let
+    qM = Set.findMin pi
+    eqD p q = (==) (partitionSet2 p partSet) (partitionSet2 q partSet)
+    g p q a = eqD (nextND nd (p, a)) (nextND nd (q, a))
+    f p q = Fold.all (g p q) alp
+    (sx, sy) = Set.partition (f qM) pi
+  in Set.delete Set.empty $ Set.fromList [sx, sy]
 
-distinguishable alp d pss ps@(q:qs) = let
-    nqs = reachState alp d q
-    f = zipWith (samePartition pss)
-    g x = f (reachState alp d x) nqs
-    (xs,ys) = partition (and . g) ps
-  in
-    nub [xs, ys] \\ [[]]
+unionsFold:: (Ord a, Fold.Foldable t) => t (Set.Set a) -> Set.Set a
+unionsFold = Fold.foldr Set.union Set.empty
 
-distinguishable2 alp d pss ps@(q:qs) = let
-    nqs = reachState2 alp d q
-    f = zipWith (samePartition pss)
-    g x = f (reachState2 alp d x) nqs
-    (xs,ys) = partition (and . g) ps
-  in
-    nub [xs, ys] \\ [[]]
+lDistinguishableSet alp d partSet = let
+    g = distinguishableSet alp d partSet
+    f = unionsFold . Set.map g
+    nPartSet = f partSet
+  in if nPartSet == partSet
+    then nPartSet
+    else lDistinguishableSet alp d nPartSet
 
-lDistinguishable alp d pss = let
-    g = distinguishable alp d pss
-    f = (nub . concatMap g)
-    npss = f pss
-  in if npss == pss then pss else lDistinguishable alp d npss
-
-lDistinguishable2 alp d pss = let
-    g = distinguishable2 alp d pss
-    f = (nub . concatMap g)
-    npss = f pss
-  in if npss == pss then pss else lDistinguishable2 alp d npss
+lDistinguishableSet2 alp nd partSet = let
+    g = distinguishableSet2 alp nd partSet
+    f = unionsFold . Set.map g
+    nPartSet = f partSet
+  in if nPartSet == partSet
+    then nPartSet
+    else lDistinguishableSet2 alp nd nPartSet
 
 {-|
 Delete redundant states and their transitions, if a state is equivalent to
@@ -279,27 +280,39 @@ undistinguisahbles.
 -}
 distinguishableDelta::(Ord a) => FiniteA a -> FiniteA a
 distinguishableDelta af@(F d sf si) = let
-    allState = getStateDomain d
-    alp = getAlphabetList af
-    p0 = fstPartition sf allState
-    qss = lDistinguishable alp d p0
-    f (ps:pss) e = if e `elem` ps then head ps else f pss e
-    f [] _ = QE
-    ks = [(x,y) | x<- map head qss, y<-alp]
-    nDelta = foldl (\x k -> Map.insert k (f qss (nextD d k), ()) x) Map.empty ks
+    allStateSet = Set.unions [getStateRangeSet d, getStateDomainSet d, sf, Set.fromList [si]]
+    pInitSet = fstPartitionSet sf allStateSet
+    alp = getAlphabet af
+    partSet = lDistinguishableSet alp d pInitSet
+    f q = (Set.findMin . Set.findMin) $ partitionSet q partSet
+    allNewStateSet = Set.map f allStateSet
+    g q delta a = let
+        k = (q, a)
+        nQ = nextD d k
+      in if nQ==QE
+        then delta
+        else Map.insert k (f nQ, ()) delta
+    h delta q = Fold.foldl (g q) delta alp
+    newDelta = Fold.foldl h Map.empty allNewStateSet
   in
-    F nDelta (Set.map (f qss) sf) si
-distinguishableDelta afn@(FN dn sf si) = let
-    allState = getStateDomain dn
-    alp = getAlphabetList afn
-    p0 = fstPartition sf allState
-    qss = lDistinguishable2 alp dn p0
-    f (ps:pss) e = if e `elem` ps then head ps else f pss e
-    f [] _ = QE
-    ks = [(x,y) | x<- map head qss, y<-alp]
-    nDelta = foldl (\x k -> Map.insert k (Set.map (f qss) (nextND dn k), ()) x) Map.empty ks
+    F newDelta (Set.map f sf) (f si)
+distinguishableDelta afn@(FN nd sf si) = let
+    allStateSet = Set.unions [getStateRangeSetND nd, getStateDomainSet nd, sf, Set.fromList [si]]
+    pInitSet = fstPartitionSet sf allStateSet
+    alp = getAlphabet afn
+    partSet = lDistinguishableSet2 alp nd pInitSet
+    f q = (Set.findMin . Set.findMin) $ partitionSet q partSet
+    allNewStateSet = Set.map f allStateSet
+    g q ndelta a = let
+        k = (q, a)
+        nQ = nextND nd k
+      in if Set.null nQ
+        then ndelta
+        else Map.insert k (Set.map f nQ, ()) ndelta
+    h ndelta q = Fold.foldl (g q) ndelta alp
+    newDelta = Fold.foldl h Map.empty allNewStateSet
   in
-    FN nDelta (Set.map (f qss) sf) si
+    afn
 
 {-|
 Minimize a finite automaton,

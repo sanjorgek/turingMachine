@@ -1,7 +1,0 @@
-F (Map.fromList [((Q 0,'i'),(Q (-1),()))]) (Set.fromList [Q 1]) (Q 1)
-""
-
-F (fromList [((Q 1,']'),(Q 1,()))]) (fromList [Q 0]) (Q 0)
-""
-
-

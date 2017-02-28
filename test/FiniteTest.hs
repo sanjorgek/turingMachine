@@ -102,12 +102,14 @@ finiteAut = describe "Finite automaton check" $
     checkString pairWord "11011" `shouldBe` True
 
 transDetTest = describe "Transform" $ do
-  prop "reachable" $
+  prop "reachable check same" $
     \ af w -> checkString (reachableDelta (af::FiniteA Int)) w == checkString af w
-  propValid "distinguishable" $
+  prop "distinguishable check same" $
     \ af w -> checkString (distinguishableDelta (af::FiniteA Int)) w == checkString af w
-  propValid "minimize" $
+  prop "minimize check same" $
     \ af w -> checkString (minimizeFinite (af::FiniteA Int)) w == checkString af w
+  prop "minimize" $
+    \ af -> let naf = minimizeFinite (af::FiniteA Int) in minimizeFinite naf == naf
 
 
 main::IO ()
