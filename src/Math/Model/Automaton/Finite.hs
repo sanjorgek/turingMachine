@@ -429,25 +429,32 @@ convertFA afn@(FN nd sqf q0) = let
   in
     mapAFLabel q0 afRare
 
-filterWords af = filter (checkString af)
-
-allStateSize s = setGenericSize $ allStateSet s
-
 automatonEssence:: (Ord a) => FiniteA a -> Essence
-automatonEssence af = let
-    alp = getAlphabet af
-    n = allStateSize af
-    acceptedWord = filterWords af $ lessKWords alp n
-  in if null acceptedWord
+automatonEssence af@F{} = let
+    (F d sqf _) = reachableDelta af
+    rangeD = getStateRangeSetD d
+  in if Set.null $ Set.intersection rangeD sqf
+    then Empty
+    else Occupied
+automatonEssence af@FN{} = let
+    (FN nd sqf _) = reachableDelta af
+    rangeD = getStateRangeSetND nd
+  in if Set.null $ Set.intersection rangeD sqf
     then Empty
     else Occupied
 
+acceptWord _ [] = False
+acceptWord af (w:ws) = checkString af w || acceptWord af ws
+
+allStateSize s = setGenericSize $ allStateSet s
+
 automatonCardinality::(Ord a) => FiniteA a -> Discrete
 automatonCardinality af = let
-    alp = getAlphabet af
-    n = allStateSize af
-    g = lessKWords alp
-    acceptedWord = filterWords af $ concatMap g [n..(2*n)]
-  in if null acceptedWord
-    then Fin $ genericLength acceptedWord
-    else Numerable
+    afm = minimizeFinite af
+    alp = getAlphabet afm
+    n = allStateSize afm
+    g = kWords alp
+    acceptedWord = acceptWord afm $ concatMap g [n..(2*(n-1))]
+  in if acceptedWord
+    then Numerable
+    else Fin
