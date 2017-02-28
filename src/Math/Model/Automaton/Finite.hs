@@ -43,7 +43,6 @@ module Math.Model.Automaton.Finite
   ,distinguishableDelta
   ,minimizeFinite
   -- ** Equivalence
-  ,convertFA'
   ,convertFA
 ) where
 import           Data.Delta
