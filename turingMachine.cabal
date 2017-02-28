@@ -24,6 +24,7 @@ source-repository head
 
 library
   exposed-modules:     Data.Delta
+                       , Data.Helper
                        , Data.Sigma
                        , Data.State
                        , Math.Model.Automaton.Finite

@@ -19,6 +19,9 @@ module Data.State
 	-- * Functions
 	,isError
 	,terminal
+  -- * Alias
+  ,SetState(..)
+  ,StateSS(..)
 ) where
 import           Control.Applicative
 import           Control.Monad
@@ -102,3 +105,7 @@ Tells if a state is a error state
 -}
 isError::(Eq a) => State a -> Bool
 isError = (QE==)
+
+type SetState a = Set.Set (State a)
+
+type StateSS a = State (SetState a)
