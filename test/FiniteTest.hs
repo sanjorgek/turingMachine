@@ -95,6 +95,10 @@ instance (Ord a, Arbitrary a) => Arbitrary (FiniteA a) where
 
 pairWord = F (liftDelta [(1,'0',1),(1,'1',2),(2,'0',2),(2,'1',1)]) (Set.fromList [Q 2]) (Q 2)
 
+emptyLang1 = F (liftDelta [(1,'0',1),(1,'1',2),(2,'0',2),(2,'1',1)]) (Set.fromList [Q 3]) (Q 2)
+
+finiteLang = F (liftDelta []) (Set.fromList [Q 2]) (Q 2)
+
 finiteAut = describe "Finite automaton check" $
   it "pair of one's" $ do
     checkString pairWord "" `shouldBe` True
@@ -116,12 +120,16 @@ transDetTest = describe "Transform" $ do
   prop "equivalence" $
     \fa w -> checkString (fa:: FiniteA Int) w == checkString (convertFA fa) w
 
-cardinalityTest = describe "Cardinality" $
-  prop "essence" $
-     \ af -> let
-        e = automatonEssence (af::FiniteA Int)
-        c = automatonCardinality af
-      in (e /= Empty) || c == Fin
+cardinalityTest = describe "Cardinal" $ do
+  it "essence" $ do
+    automatonEssence pairWord `shouldBe` Occupied
+    automatonEssence emptyLang1 `shouldBe` Empty
+    automatonEssence finiteLang `shouldBe` Occupied
+  it "cardinality" $ do
+    automatonCardinality pairWord `shouldBe` Numerable
+    automatonCardinality emptyLang1 `shouldBe` Fin
+    automatonCardinality finiteLang `shouldBe` Fin
+
 
 main::IO ()
 main = hspec $

@@ -431,15 +431,15 @@ convertFA afn@(FN nd sqf q0) = let
 
 automatonEssence:: (Ord a) => FiniteA a -> Essence
 automatonEssence af@F{} = let
-    (F d sqf _) = reachableDelta af
+    (F d sqf q0) = reachableDelta af
     rangeD = getStateRangeSetD d
-  in if Set.null $ Set.intersection rangeD sqf
+  in if Set.null (Set.intersection rangeD sqf) && Set.notMember q0 sqf
     then Empty
     else Occupied
 automatonEssence af@FN{} = let
-    (FN nd sqf _) = reachableDelta af
+    (FN nd sqf q0) = reachableDelta af
     rangeD = getStateRangeSetND nd
-  in if Set.null $ Set.intersection rangeD sqf
+  in if Set.null (Set.intersection rangeD sqf) && Set.notMember q0 sqf
     then Empty
     else Occupied
 
