@@ -45,6 +45,8 @@ module Math.Model.Automaton.Finite
   -- ** Equivalence
   ,convertFA
   -- * Language
+  ,automatonEssence
+  ,automatonCardinality
 ) where
 import           Data.Cardinal
 import           Data.Delta
@@ -429,36 +431,23 @@ convertFA afn@(FN nd sqf q0) = let
 
 filterWords af = filter (checkString af)
 
+allStateSize s = setGenericSize $ allStateSet s
+
 automatonEssence:: (Ord a) => FiniteA a -> Essence
-automatonEssence af@(F d sqf q0) = let
+automatonEssence af = let
     alp = getAlphabet af
-    n = Set.size $ allStateSet af
+    n = allStateSize af
     acceptedWord = filterWords af $ lessKWords alp n
   in if null acceptedWord
     then Empty
     else Occupied
-automatonEssence afn@(FN nd sqf q0) = let
-    alp = getAlphabet afn
-    n = Set.size $ allStateSet afn
-    acceptedWord = filterWords afn $ lessKWords alp n
-  in if null acceptedWord
-    then Empty
-    else Occupied
 
-automatonCandinality::(Ord a) => FiniteA a -> Discrete
-automatonCandinality af@(F d sqf q0) = let
+automatonCardinality::(Ord a) => FiniteA a -> Discrete
+automatonCardinality af = let
     alp = getAlphabet af
-    n = Set.size $ allStateSet af
+    n = allStateSize af
     g = lessKWords alp
     acceptedWord = filterWords af $ concatMap g [n..(2*n)]
   in if null acceptedWord
-    then Numerable
-    else Fin $ genericLength acceptedWord
-automatonCandinality afn@(FN nd sqf q0) = let
-    alp = getAlphabet afn
-    n = Set.size $ allStateSet afn
-    g = lessKWords alp
-    acceptedWord = filterWords afn $ concatMap g [n..(2*n)]
-  in if null acceptedWord
-    then Numerable
-    else Fin $ genericLength acceptedWord
+    then Fin $ genericLength acceptedWord
+    else Numerable

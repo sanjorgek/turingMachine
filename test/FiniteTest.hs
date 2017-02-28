@@ -2,6 +2,7 @@
 {-# LANGUAGE TypeSynonymInstances #-}
 module Main where
 
+import           Data.Cardinal
 import qualified Data.Map                    as Map
 import qualified Data.Set                    as Set
 import           Data.State
@@ -114,8 +115,16 @@ transDetTest = describe "Transform" $ do
   prop "equivalence" $
     \fa w -> checkString (fa:: FiniteA Int) w == checkString (convertFA fa) w
 
+cardinalityTest = describe "Cardinality" $
+  prop "ocupaided then not Fin 0" $
+     \ af -> let
+        e = automatonEssence (af::FiniteA Int)
+        c = automatonCardinality af
+      in (e /= Empty) || c == Fin 0
+
 main::IO ()
 main = hspec $
   describe "Math.Model.Automaton.Finite" $ do
     finiteAut
     transDetTest
+    cardinalityTest
