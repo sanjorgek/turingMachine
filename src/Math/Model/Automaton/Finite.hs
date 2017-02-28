@@ -43,6 +43,7 @@ module Math.Model.Automaton.Finite
   ,distinguishableDelta
   ,minimizeFinite
   -- ** Equivalence
+  ,convertFA'
   ,convertFA
 ) where
 import           Data.Delta
@@ -374,11 +375,11 @@ isNewFinal sa (Q sq) = let
 convertFA'::(Ord a) => FiniteA a -> FiniteA (SetState a)
 convertFA' (FN nd sqf q0) = let
     alp = getFirstParamSet nd
-    newQ0 = Q $ Set.fromList [q0]
+    newQ0 = Q $ Set.singleton q0
     newD = updateDelta nd newQ0 Map.empty
     sf = setState2Set sqf
-    dDom = getStateDomainSet newD
-    newSQF = Set.filter(isNewFinal sf) dDom
+    dDom = Set.unions [getStateDomainSet newD, getStateRangeSetD newD, Set.singleton newQ0]
+    newSQF = Set.filter (isNewFinal sf) dDom
   in minimizeFinite $ F newD newSQF newQ0
 
 enumDom::(Ord a) => Set.Set (StateSS a) -> StateSS a -> Int
@@ -406,7 +407,7 @@ state2Enum (Q a) = a
 mapAFLabel::(Enum a, Ord a) => State a -> FiniteA (SetState a) -> FiniteA a
 mapAFLabel q (F d sqf q0) = let
     o = state2Enum q
-    sqsq = Set.union (getStateDomainSet d) $ Set.union (getStateRangeSetD d) sqf
+    sqsq = Set.unions [getStateDomainSet d, getStateRangeSetD d, Set.singleton q0]
   in F (mapDeltaLabel o sqsq d) (mapSetLabel o sqsq sqf) (newLabel o sqsq q0)
 
 {-|
@@ -414,7 +415,7 @@ Finite Autmaton Equivalence
 -}
 convertFA::(Enum a, Ord a) => FiniteA a -> FiniteA a
 convertFA (F d sqf q0) = let
-    f (x, y) = (Set.fromList [x], y)
+    f (x, y) = (Set.singleton x, y)
   in
     FN (fmap f d) sqf q0
 convertFA afn@(FN nd sqf q0) = let

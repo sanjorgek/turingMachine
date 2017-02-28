@@ -111,9 +111,7 @@ transDetTest = describe "Transform" $ do
     \ af w -> checkString (minimizeFinite (af::FiniteA Int)) w == checkString af w
   prop "minimize" $
     \ af -> let naf = minimizeFinite (af::FiniteA Int) in minimizeFinite naf == naf
-
-finiteAutEquiv = describe "Equiv" $
-  prop "principal" $
+  prop "equivalence" $
     \fa w -> checkString (fa:: FiniteA Int) w == checkString (convertFA fa) w
 
 main::IO ()
@@ -121,4 +119,3 @@ main = hspec $
   describe "Math.Model.Automaton.Finite" $ do
     finiteAut
     transDetTest
-    finiteAutEquiv
