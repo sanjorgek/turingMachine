@@ -24,15 +24,36 @@ Stack memory machine with states
 ## To Do
 
 - [ ] Finite Automaton
-  - [x] Lift delta
-  - [x] deterministic automaton def
-  - [x] Non-deterministic automaton def
-  - [x] Transductor
-  - [ ] Transductor equivalences
-  - [x] Recheable states
-  - [x] Distinguishable states
-  - [x] Minimize deterministic
-  - [x] Non-deterministic to deterministic automaton, and viceversa
+  - [x] Delta
+    - [x] Deterministic
+    - [x] Non-deterministic
+    - [x] Lift deltas
+  - [x] Lambda
+    - [x] Lambda1
+    - [x] Lambda2
+    - [x] Lift lambda
+  - [ ] Recognizer
+    - [x] Deterministic def
+    - [x] Non-deterministic def
+    - [x] Check Word
+    - [ ] k-distinguishable states
+    - [ ] Distinguishable states
+    - [ ] Equivalent states
+    - [ ] Equivalent recognizer
+    - [x] Non-deterministic to deterministic, and viceversa
+    - [x] Recheable recognizer
+    - [x] Distinguishable recognizer
+    - [x] Minimize recognizer
+    - [ ] Remove Ambiguity
+    - [ ] Language cadinality
+  - [ ] Transductor
+    - [x] Moore
+    - [x] Mealy
+    - [x] translate 
+    - [ ] Moore to Mealy, and viceversa   
+  - [ ] Recognizer with epsilon transitions
+    - [ ] def
+    - [ ] Recognizer with epsilon transitions to Recognizer without epsilon transitions
 - [ ] Stack Automaton
   - [x] Lift delta
   - [x] Deterministic stack automaton def
