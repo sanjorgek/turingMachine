@@ -45,7 +45,7 @@ Stack memory machine with states
     - [x] Distinguishable recognizer
     - [x] Minimize recognizer
     - [ ] Remove Ambiguity
-    - [ ] Language cadinality
+    - [x] Language cadinality
   - [ ] Transductor
     - [x] Moore
     - [x] Mealy

@@ -44,7 +44,11 @@ module Math.Model.Automaton.Finite
   ,minimizeFinite
   -- ** Equivalence
   ,convertFA
+  -- * Language
+  ,automatonEssence
+  ,automatonCardinality
 ) where
+import           Data.Cardinal
 import           Data.Delta
 import qualified Data.Foldable   as Fold
 import           Data.Helper
@@ -271,6 +275,9 @@ lDistinguishableSet2 alp nd partSet = let
     then nPartSet
     else lDistinguishableSet2 alp nd nPartSet
 
+allStateSet (F d sqf q0) = Set.unions [getStateRangeSet d, getStateDomainSet d, sqf, Set.singleton q0]
+allStateSet (FN nd sqf q0) = Set.unions [getStateRangeSetND nd, getStateDomainSet nd, sqf, Set.singleton q0]
+
 {-|
 Delete redundant states and their transitions, if a state is equivalent to
 another then is redundant, two state are equivalent if they are
@@ -278,12 +285,12 @@ undistinguisahbles.
 -}
 distinguishableDelta::(Ord a) => FiniteA a -> FiniteA a
 distinguishableDelta af@(F d sf si) = let
-    allStateSet = Set.unions [getStateRangeSet d, getStateDomainSet d, sf, Set.fromList [si]]
-    pInitSet = fstPartitionSet sf allStateSet
+    allState = allStateSet af
+    pInitSet = fstPartitionSet sf allState
     alp = getAlphabet af
     partSet = lDistinguishableSet alp d pInitSet
     f q = (Set.findMin . Set.findMin) $ partitionSet q partSet
-    allNewStateSet = Set.map f allStateSet
+    allNewStateSet = Set.map f allState
     g q delta a = let
         k = (q, a)
         nQ = nextD d k
@@ -295,12 +302,12 @@ distinguishableDelta af@(F d sf si) = let
   in
     F newDelta (Set.map f sf) (f si)
 distinguishableDelta afn@(FN nd sf si) = let
-    allStateSet = Set.unions [getStateRangeSetND nd, getStateDomainSet nd, sf, Set.fromList [si]]
-    pInitSet = fstPartitionSet sf allStateSet
+    allState = allStateSet afn
+    pInitSet = fstPartitionSet sf allState
     alp = getAlphabet afn
     partSet = lDistinguishableSet2 alp nd pInitSet
     f q = (Set.findMin . Set.findMin) $ partitionSet q partSet
-    allNewStateSet = Set.map f allStateSet
+    allNewStateSet = Set.map f allState
     g q ndelta a = let
         k = (q, a)
         nQ = nextND nd k
@@ -404,9 +411,9 @@ state2Enum QE = toEnum 0
 state2Enum (Q a) = a
 
 mapAFLabel::(Enum a, Ord a) => State a -> FiniteA (SetState a) -> FiniteA a
-mapAFLabel q (F d sqf q0) = let
+mapAFLabel q af@(F d sqf q0) = let
     o = state2Enum q
-    sqsq = Set.unions [getStateDomainSet d, getStateRangeSetD d, Set.singleton q0]
+    sqsq = allStateSet af
   in F (mapDeltaLabel o sqsq d) (mapSetLabel o sqsq sqf) (newLabel o sqsq q0)
 
 {-|
@@ -421,3 +428,35 @@ convertFA afn@(FN nd sqf q0) = let
     afRare = convertFA' afn
   in
     mapAFLabel q0 afRare
+
+automatonEssence:: (Ord a) => FiniteA a -> Essence
+automatonEssence af@F{} = let
+    (F d sqf q0) = reachableDelta af
+    rangeD = getStateRangeSetD d
+  in if Set.null (Set.intersection rangeD sqf) && Set.notMember q0 sqf
+    then Empty
+    else Occupied
+automatonEssence af@FN{} = let
+    (FN nd sqf q0) = reachableDelta af
+    rangeD = getStateRangeSetND nd
+  in if Set.null (Set.intersection rangeD sqf) && Set.notMember q0 sqf
+    then Empty
+    else Occupied
+
+acceptWord _ [] = False
+acceptWord af (w:ws) = checkString af w || acceptWord af ws
+
+allStateSize s = setGenericSize $ allStateSet s
+
+filterWords af = filter (checkString af)
+
+automatonCardinality::(Ord a) => FiniteA a -> Discrete
+automatonCardinality af = let
+    afm = minimizeFinite af
+    alp = getAlphabet afm
+    n = allStateSize afm
+    g = kWords alp
+    acceptedWord = acceptWord afm $ concatMap g [n..(2*(n-1))]
+  in if acceptedWord
+    then Numerable
+    else Fin $ genericLength $ filterWords afm $ lessKWords alp (n-1)
