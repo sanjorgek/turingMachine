@@ -32,6 +32,7 @@ module Data.Delta
 	,(:*>:)(..)
   -- ** Functions
   ,liftL
+  ,nextTMaybe
   ,nextT
   -- * Auxiliar functions
   ,getFirstParam
@@ -53,47 +54,7 @@ import qualified Data.Map.Strict as Map
 import qualified Data.Set        as Set
 import           Data.Sigma
 import           Data.State
-
-{-|
-Deterministic Delta
-
-Maps a tuple, a state and a param, to a tuple, a state and a param.
--}
-type (:->:) a p1 p2 = Map.Map (State a, p1) (State a, p2)
-
-liftD::(Ord a, Ord p1) => [(a, p1, a, p2)] -> (:->:) a p1 p2
-liftD ds = let
-    (xs, ys, ws, zs) = unzip4 ds
-    ks = zip (map return xs) ys
-    as = zip (map return ws) zs
-  in Map.fromList $ zip ks as
-
-{-|
-Next state function for deterministic delta
--}
-nextD :: (Ord p1, Ord a) => (:->:) a p1 p2 -> (State a, p1) -> State a
-nextD dt k = if Map.member k dt then fst (dt Map.! k) else QE
-
-{-|
-Non-Deterministic Delta
-
-Maps a tuple, a state and a param, to a tuple, a state list and a param.
--}
-type (:-<:) a p1 p2 = Map.Map (State a, p1) (Set.Set (State a), p2)
-
-liftND::(Ord a, Ord p1) => [(a, p1, [a], p2)] -> (:-<:) a p1 p2
-liftND ds = let
-    (xs, ys, wss, zs) = unzip4 ds
-    ks = zip (map return xs) ys
-    f = Set.fromList . map return
-    as = zip (map f wss) zs
-  in Map.fromList $ zip ks as
-
-{-|
-Next state function for non-deterministic delta
--}
-nextND :: (Ord p1, Ord a) => (:-<:) a p1 p2 -> (State a, p1) -> Set.Set (State a)
-nextND dt k = if Map.member k dt then fst (dt Map.! k) else Set.insert QE Set.empty
+import           Data.Maybe
 
 {-|
 Map a tuple, a state and a param, to some output
@@ -107,11 +68,59 @@ liftL ds = let
     nds = zip (zip (f xs) ys) zs
   in Map.fromList nds
 
+nextTMaybe :: (Ord p1, Ord a) => (:*>:) a p1 o -> (State a, p1) -> Maybe o
+nextTMaybe dt k = if Map.member k dt 
+  then Just $ dt Map.! k
+  else Nothing
+
 {-|
 For simple map with Chars range
 -}
-nextT :: (Ord p1, Ord a) => (:*>:) a p1 Symbol -> (State a, p1) -> Symbol
-nextT dt k = if Map.member k dt then dt Map.! k else '\0'
+nextT::(Ord p1, Ord a) => (:*>:) a p1 Symbol -> (State a, p1) -> Symbol
+nextT dt k = let
+    mO = nextTMaybe dt k
+  in if isJust mO
+    then fromJust mO
+    else '\0'
+
+{-|
+Deterministic Delta
+
+Maps a tuple, a state and a param, to a tuple, a state and a param.
+-}
+type (:->:) a p1 p2 = (:*>:) a p1 (State a, p2)
+
+liftD::(Ord a, Ord p1) => [(a, p1, a, p2)] -> (:->:) a p1 p2
+liftD ds = let
+    (xs, ys, ws, zs) = unzip4 ds
+    as = zip (map return ws) zs
+  in liftL $ zip3 xs ys as
+
+{-|
+Next state function for deterministic delta
+-}
+nextD :: (Ord p1, Ord a) => (:->:) a p1 p2 -> (State a, p1) -> State a
+nextD dt k = if Map.member k dt then fst (dt Map.! k) else QE
+
+{-|
+Non-Deterministic Delta
+
+Maps a tuple, a state and a param, to a tuple, a state list and a param.
+-}
+type (:-<:) a p1 p2 = (:*>:) a p1 (Set.Set (State a), p2)
+
+liftND::(Ord a, Ord p1) => [(a, p1, [a], p2)] -> (:-<:) a p1 p2
+liftND ds = let
+    (xs, ys, wss, zs) = unzip4 ds
+    f = Set.fromList . map return
+    as = zip (map f wss) zs
+  in liftL $ zip3 xs ys as
+
+{-|
+Next state function for non-deterministic delta
+-}
+nextND :: (Ord p1, Ord a) => (:-<:) a p1 p2 -> (State a, p1) -> Set.Set (State a)
+nextND dt k = if Map.member k dt then fst (dt Map.! k) else Set.insert QE Set.empty
 
 {-|
 Gets all params at domain, for (:->:) and (:-<:)
