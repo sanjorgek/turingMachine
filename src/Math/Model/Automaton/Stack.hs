@@ -45,21 +45,18 @@ A key for a delta.
 -}
 type Key a = (State a, (Maybe Symbol, Symbol))
 
+typeTrans [] = Nothing
+typeTrans (x:_) = Just x
+
+tupleKey (a,b,c,d,e) = (a,(typeTrans b,c),d,e)
+
 {-|
 Takes a list of tuples and lift a Delta
 
 >>>let delta = liftD [(0,"(",'Z',0,"IZ"),(0,"",'Z',0,""),(0,"(",'I',0,"II"),(0,")",'I',0,"")]
 -}
 liftDelta:: Ord a => [(a, Wd, Symbol, a, Wd)]-> Delta a
-liftDelta xs = let
-    (as,bs,cs,ds,es) = unzip5 xs
-    f = map Q
-    g [] = Nothing
-    g (x:_) = Just x
-    ps = zip (map g bs) cs
-    ks = zip (f as) ps
-    rs = zip (f ds) es
-  in Map.fromList (zip ks rs)
+liftDelta xs = liftD $ map tupleKey xs
 
 nextDTuple :: Ord a => Delta a -> Key a -> (State a, Wd)
 nextDTuple dt k = if Map.member k dt then dt Map.! k else (QE,[])
