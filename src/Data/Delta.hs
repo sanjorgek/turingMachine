@@ -79,9 +79,7 @@ For simple map with Chars range
 nextT::(Ord p1, Ord a) => (:*>:) a p1 Symbol -> (State a, p1) -> Symbol
 nextT dt k = let
     mO = nextTMaybe dt k
-  in if isJust mO
-    then fromJust mO
-    else '\0'
+  in fromMaybe '\NUL' mO
 
 {-|
 Deterministic Delta
@@ -102,9 +100,7 @@ Next state function for deterministic delta
 nextD :: (Ord p1, Ord a) => (:->:) a p1 p2 -> (State a, p1) -> State a
 nextD dt k = let
     mQ = nextTMaybe dt k
-  in if isJust mQ
-    then fst $ fromJust mQ
-    else QE
+  in maybe QE fst mQ
 
 {-|
 Non-Deterministic Delta
@@ -126,9 +122,7 @@ Next state function for non-deterministic delta
 nextND :: (Ord p1, Ord a) => (:-<:) a p1 p2 -> (State a, p1) -> Set.Set (State a)
 nextND dt k = let
     mQ = nextTMaybe dt k
-  in if isJust mQ 
-    then fst $ fromJust mQ
-    else Set.singleton QE
+  in maybe (Set.singleton QE) fst mQ
 
 {-|
 Gets all params at domain, for (:->:) and (:-<:)
