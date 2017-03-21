@@ -117,37 +117,37 @@ nextT dt k = if Map.member k dt then dt Map.! k else '\0'
 Gets all params at domain, for (:->:) and (:-<:)
 -}
 getFirstParam::(Eq b) => Map.Map (a, b) a1 -> [b]
-getFirstParam = nub . snd . unzip . Map.keys
+getFirstParam = nub . map snd . Map.keys
 
 getFirstParamSet::(Ord b) => Map.Map (a, b) a1 -> Set.Set b
-getFirstParamSet = Set.fromList . snd . unzip . Map.keys
+getFirstParamSet = Set.fromList . map snd . Map.keys
 
 {-|
 Gets all params at range, for (:->:) and (:-<:)
 -}
 getSecondParam::(Eq b) => Map.Map k (a, b) -> [b]
-getSecondParam = nub . snd . unzip . Map.elems
+getSecondParam = nub . map snd . Map.elems
 
 getSecondParamSet::(Ord b) => Map.Map k (a, b) -> Set.Set b
-getSecondParamSet = Set.fromList . snd . unzip . Map.elems
+getSecondParamSet = Set.fromList . map snd . Map.elems
 
 {-|
 Gets all states at domain, for (:->:) and (:-<:)
 -}
 getStateDomain::(Eq a) => Map.Map (a, b) a1 -> [a]
-getStateDomain = nub . fst . unzip . Map.keys
+getStateDomain = nub . map fst . Map.keys
 
 getStateDomainSet::(Ord a) => Map.Map (a, b) a1 -> Set.Set a
-getStateDomainSet = Set.fromList . fst . unzip . Map.keys
+getStateDomainSet = Set.fromList . map fst . Map.keys
 
 {-|
 Gets all params at range, for (:->:) and (:-<:)
 -}
 getStateRange::(Eq a) => Map.Map k (a, b) -> [a]
-getStateRange = nub . fst . unzip . Map.elems
+getStateRange = nub . map fst . Map.elems
 
 getStateRangeSet::(Ord a) => Map.Map k (a, b) -> Set.Set a
-getStateRangeSet = Set.fromList . fst . unzip . Map.elems
+getStateRangeSet = Set.fromList . map fst . Map.elems
 
 getStateRangeD::(Eq a) => (:->:) a p1 p2 -> [State a]
 getStateRangeD = getStateRange
@@ -156,7 +156,7 @@ getStateRangeSetD::(Ord a) => (:->:) a p1 p2 -> Set.Set (State a)
 getStateRangeSetD = getStateRangeSet
 
 getStateRangeND::(Ord a) => (:-<:) a p1 p2 -> [State a]
-getStateRangeND = Set.toList . Set.unions . fst . unzip . Map.elems
+getStateRangeND = Set.toList . Set.unions . map fst . Map.elems
 
 getStateRangeSetND::(Ord a) => (:-<:) a p1 p2 -> Set.Set (State a)
-getStateRangeSetND = Set.unions . fst . unzip . Map.elems
+getStateRangeSetND = Set.unions . map fst . Map.elems
