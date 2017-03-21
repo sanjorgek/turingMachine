@@ -52,11 +52,6 @@ List symbol alias, Word are defined in Prelude
 -}
 type Wd = [Symbol]
 
--- |Simple word monoid, holds all properties
-instance Monoid Wd where
-  mempty = []
-  mappend = (++)
-
 -- |An alphabet is a set of symbols
 type Alphabet = Set.Set Symbol
 
