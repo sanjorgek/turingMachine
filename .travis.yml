@@ -7,3 +7,4 @@ install:
   - cabal install hspec
   - cabal install QuickCheckVariant
   - cabal install hspecVariant
+  - cabal install mtl
