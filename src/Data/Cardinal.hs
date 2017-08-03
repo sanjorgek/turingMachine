@@ -10,28 +10,42 @@ Maintainer  : sanjorgek@ciencias.unam.mx
 Stability   : experimental
 Portability : portable
 
-Cardinal def
+Cardinal definitions
 -}
 module Data.Cardinal where
 import           Data.Monoid
 
-data Essence = Empty | Occupied deriving(Show, Eq, Ord)
+{-|
+All sets can be one and only one:
+
+- a empty set
+- a set with, at least, one element
+-}
+data Essence = Empty | Occupied deriving(Show, Eq, Ord, Bounded)
 
 {-|
-Cardinal def:
+Simple cardinality definition, we work here with numerable sets.
 
-1. Finite Natural value
+All set have one and only one:
 
-2. Infinite value
+1. A finite size
+
+2. A infinite size
 -}
 data Discrete = Fin Integer | Numerable deriving(Show, Eq)
 
+{-|
+Order for numerable cardinality
+-}
 instance Ord Discrete where
-  compare (Fin n) (Fin m) = compare n m
+  compare (Fin n) (Fin m)     = compare n m
   compare Numerable Numerable = EQ
-  compare Numerable _ = GT
-  compare _ _ = LT
+  compare Numerable _         = GT
+  compare _ _                 = LT
 
+{-|
+Bound limits for numerable cardinality
+-}
 instance Bounded Discrete where
   minBound = Fin 0
   maxBound = Numerable

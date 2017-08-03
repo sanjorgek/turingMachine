@@ -23,7 +23,7 @@ import qualified Data.Foldable       as Fold
 import           Data.List
 import           Data.Monoid
 import           Data.Sigma
-import           Data.State
+import           Data.Label
 import           Math.Model.Turing
 
 data Tape a = T [a] a [a] deriving(Show, Eq)

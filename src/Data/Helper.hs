@@ -24,9 +24,15 @@ import           Data.List
 import qualified Data.Map.Lazy as Map
 import qualified Data.Set      as Set
 
+{-|
+Union of set monad
+-}
 unionsFold:: (Ord a, Fold.Foldable t) => t (Set.Set a) -> Set.Set a
 unionsFold = Fold.foldr Set.union Set.empty
 
+{-|
+Size of a set, with large integers
+-}
 setGenericSize:: (Ord a) => Set.Set a -> Integer
 setGenericSize s = if Set.null s
   then 0

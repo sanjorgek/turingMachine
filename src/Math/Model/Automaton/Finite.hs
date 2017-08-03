@@ -52,11 +52,11 @@ import           Data.Cardinal
 import           Data.Delta
 import qualified Data.Foldable   as Fold
 import           Data.Helper
+import           Data.Label
 import           Data.List
 import qualified Data.Map.Strict as Map
 import qualified Data.Set        as Set
 import           Data.Sigma
-import           Data.State
 
 tupleVoid:: (a,b,c) -> (a,b,c,())
 tupleVoid (a,b,c) = (a,b,c,())
@@ -119,32 +119,32 @@ Finite deterministic Automaton
 -}
 data FiniteA a =
 	-- |>>>let autFin = F delta (Set.fromList [Q 0]) (Q 0)
-	F (Delta a) (Final a) (State a)
+	F (Delta a) (Final a) (Label a)
 	-- |>>>let autFinN = FN deltaN (Set.fromList [Q 0]) (Q 0)
-	| FN (NDelta a) (Final a) (State a) deriving(Show,Eq)
+	| FN (NDelta a) (Final a) (Label a) deriving(Show,Eq)
 
 {-|
 Gets alphabet for some finite automaton
 -}
 getAlphabet:: FiniteA a -> Alphabet
-getAlphabet (F d _ _) = getFirstParamSet d
+getAlphabet (F d _ _)   = getFirstParamSet d
 getAlphabet (FN dn _ _) = getFirstParamSet dn
 
 getAlphabetList::FiniteA a -> [Symbol]
-getAlphabetList (F d _ _) = getFirstParam d
+getAlphabetList (F d _ _)   = getFirstParam d
 getAlphabetList (FN dn _ _) = getFirstParam dn
 
 {-|
 For some delta, an initial state anf a word returns final state for that word
 -}
-endState::(Ord a) => Delta a -> State a -> Wd -> State a
-endState _ q [] = q
+endState::(Ord a) => Delta a -> Label a -> Wd -> Label a
+endState _ q []      = q
 endState dt q (x:xs) = endState dt (nextD dt (q,x)) xs
 
 {-|
 Same as endState but work with no deterministic delta
 -}
-endStates::(Ord a) => NDelta a -> SetState a -> Wd -> SetState a
+endStates::(Ord a) => NDelta a -> SetLabel a -> Wd -> SetLabel a
 endStates _ sq [] = sq
 endStates dn sq (x:xs) = let
     nsq = Set.map (\q -> nextND dn (q,x)) sq
@@ -179,8 +179,8 @@ Transducer Autmaton, both types:
 2. Mealy
 -}
 data Transductor a =
-	Moore (Delta a) (Lambda1 a) (Final a) (State a)
-	|Mealy (Delta a) (Lambda2 a) (Final a) (State a) deriving(Show, Eq)
+	Moore (Delta a) (Lambda1 a) (Final a) (Label a)
+	|Mealy (Delta a) (Lambda2 a) (Final a) (Label a) deriving(Show, Eq)
 
 {-|
 For every transducer, given a word the automaton change all symbols in lambda
@@ -192,14 +192,14 @@ translate (Moore d l qF s) ws = let
 	where
 		translate' _ _ QE xs ys = (QE, "Error: \nCadena:"++xs++"\nResp parcial: "++ys)
 		translate' _ _ q [] xs = (q, xs)
-		translate' dt lm q (y:ys) xs = translate' dt lm (nextD dt (q,y)) ys (xs++[nextT lm (q, ())])
+		translate' dt lm q (y:ys) xs = translate' dt lm (nextD dt (q,y)) ys (xs++[nextSymbol lm (q, ())])
 translate (Mealy d l qF s) ws = let
 		(q, w) = translate' d l s ws []
 	in w
 	where
 		translate' _ _ QE xs ys = (QE, "Error: \nCadena:"++xs++"\nResp parcial: "++ys)
 		translate' _ _ q [] xs = (q, xs)
-		translate' dt lm q (x:xs) ys = translate' dt lm (nextD dt (q, x)) xs (ys++[nextT lm (q,x)])
+		translate' dt lm q (x:xs) ys = translate' dt lm (nextD dt (q, x)) xs (ys++[nextSymbol lm (q,x)])
 
 reachableStates1 alp d xs = let
     qs = xs ++ [nextD d (y,x) | x<-alp, y<-xs]
@@ -275,7 +275,7 @@ lDistinguishableSet2 alp nd partSet = let
     then nPartSet
     else lDistinguishableSet2 alp nd nPartSet
 
-allStateSet (F d sqf q0) = Set.unions [getStateRangeSet d, getStateDomainSet d, sqf, Set.singleton q0]
+allStateSet (F d sqf q0) = Set.unions [getStateRangeSetD d, getStateDomainSet d, sqf, Set.singleton q0]
 allStateSet (FN nd sqf q0) = Set.unions [getStateRangeSetND nd, getStateDomainSet nd, sqf, Set.singleton q0]
 
 {-|
@@ -329,39 +329,39 @@ Minimize a finite automaton,
 minimizeFinite::(Ord a) => FiniteA a -> FiniteA a
 minimizeFinite = reachableDelta . distinguishableDelta
 
-state2Set::(Ord a) => State a -> Set.Set a
-state2Set QE = Set.empty
+state2Set::(Ord a) => Label a -> Set.Set a
+state2Set QE    = Set.empty
 state2Set (Q x) = Set.fromList [x]
 
-setState2Set'::(Ord a) => Set.Set a -> SetState a -> Set.Set a
+setState2Set'::(Ord a) => Set.Set a -> SetLabel a -> Set.Set a
 setState2Set' sa sP = if sP==Set.empty
   then sa
   else let
       p = Set.elemAt 0 sP
     in setState2Set' (Set.union (state2Set p) sa) (Set.delete p sP)
 
-setState2Set::(Ord a) => SetState a -> Set.Set a
+setState2Set::(Ord a) => SetLabel a -> Set.Set a
 setState2Set = setState2Set' Set.empty
 
-nextStateSet::(Ord a) => NDelta a -> StateSS a -> Symbol -> SetState a
+nextStateSet::(Ord a) => NDelta a -> LabelSS a -> Symbol -> SetLabel a
 nextStateSet nd qsq a = let
     f q = nextND nd (q, a)
     g = Set.map f
     Q sq = fmap g qsq
   in unionsFold sq
 
-updateDeltaBySym::(Ord a) => NDelta a -> StateSS a -> Symbol -> Delta (SetState a) -> Delta (SetState a)
+updateDeltaBySym::(Ord a) => NDelta a -> LabelSS a -> Symbol -> Delta (SetLabel a) -> Delta (SetLabel a)
 updateDeltaBySym nd qsq a d = let
     k = (qsq, a)
     psp = Q $ nextStateSet nd qsq a
   in Map.insert k (psp, ()) d
 
-updateDeltaByState::(Ord a) => NDelta a -> StateSS a -> Delta (SetState a) -> Delta (SetState a)
+updateDeltaByState::(Ord a) => NDelta a -> LabelSS a -> Delta (SetLabel a) -> Delta (SetLabel a)
 updateDeltaByState nd qsq delta = let
     f d a = updateDeltaBySym nd qsq a d
   in Fold.foldl f delta (getFirstParamSet nd)
 
-updateDelta::(Ord a) => NDelta a -> StateSS a -> Delta (SetState a) -> Delta (SetState a)
+updateDelta::(Ord a) => NDelta a -> LabelSS a -> Delta (SetLabel a) -> Delta (SetLabel a)
 updateDelta nd qsq d = let
     dDom = getStateDomainSet d
     newD = updateDeltaByState nd qsq d
@@ -372,13 +372,13 @@ updateDelta nd qsq d = let
     then newD
     else Fold.foldl f newD difS
 
-isNewFinal::(Ord a) => Set.Set a -> StateSS a -> Bool
+isNewFinal::(Ord a) => Set.Set a -> LabelSS a -> Bool
 isNewFinal _ QE = False
 isNewFinal sa (Q sq) = let
     sInter = Set.intersection sa (setState2Set sq)
   in not $ Set.null sInter
 
-convertFA'::(Ord a) => FiniteA a -> FiniteA (SetState a)
+convertFA'::(Ord a) => FiniteA a -> FiniteA (SetLabel a)
 convertFA' (FN nd sqf q0) = let
     alp = getFirstParamSet nd
     newQ0 = Q $ Set.singleton q0
@@ -388,29 +388,29 @@ convertFA' (FN nd sqf q0) = let
     newSQF = Set.filter (isNewFinal sf) dDom
   in minimizeFinite $ F newD newSQF newQ0
 
-enumDom::(Ord a) => Set.Set (StateSS a) -> StateSS a -> Int
+enumDom::(Ord a) => Set.Set (LabelSS a) -> LabelSS a -> Int
 enumDom sqsq qsq = Set.findIndex qsq sqsq
 
 succN:: (Enum a) => a -> Int -> a
 succN a 0 = a
 succN a n = succN (succ a) (n-1)
 
-newLabel::(Enum a, Ord a) => a -> Set.Set (StateSS a) -> StateSS a -> State a
+newLabel::(Enum a, Ord a) => a -> Set.Set (LabelSS a) -> LabelSS a -> Label a
 newLabel o sqsq qsq = Q $ succN o $ enumDom sqsq qsq
 
-mapSetLabel::(Enum a, Ord a) => a -> Set.Set (StateSS a) -> Set.Set (StateSS a) -> Set.Set (State a)
+mapSetLabel::(Enum a, Ord a) => a -> Set.Set (LabelSS a) -> Set.Set (LabelSS a) -> Set.Set (Label a)
 mapSetLabel o sqsq = Set.map $ newLabel o sqsq
 
-mapDeltaLabel::(Enum a, Ord a) => a -> Set.Set (StateSS a) -> Delta (SetState a) -> Delta a
+mapDeltaLabel::(Enum a, Ord a) => a -> Set.Set (LabelSS a) -> Delta (SetLabel a) -> Delta a
 mapDeltaLabel o sqsq rareD = let
     f (qsq, x) = (newLabel o sqsq qsq, x)
   in Map.mapKeys f (Map.map f rareD)
 
-state2Enum::(Enum a) => State a -> a
-state2Enum QE = toEnum 0
+state2Enum::(Enum a) => Label a -> a
+state2Enum QE    = toEnum 0
 state2Enum (Q a) = a
 
-mapAFLabel::(Enum a, Ord a) => State a -> FiniteA (SetState a) -> FiniteA a
+mapAFLabel::(Enum a, Ord a) => Label a -> FiniteA (SetLabel a) -> FiniteA a
 mapAFLabel q af@(F d sqf q0) = let
     o = state2Enum q
     sqsq = allStateSet af
@@ -443,7 +443,7 @@ automatonEssence af@FN{} = let
     then Empty
     else Occupied
 
-acceptWord _ [] = False
+acceptWord _ []      = False
 acceptWord af (w:ws) = checkString af w || acceptWord af ws
 
 allStateSize s = setGenericSize $ allStateSet s

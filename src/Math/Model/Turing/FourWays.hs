@@ -22,7 +22,7 @@ import qualified Data.Foldable             as Fold
 import           Data.List
 import           Data.Monoid
 import           Data.Sigma
-import           Data.State
+import           Data.Label
 import           Math.Model.Turing
 import           Math.Model.Turing.TwoWays
 

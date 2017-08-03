@@ -20,11 +20,11 @@ module Math.Model.Turing where
 import           Control.Applicative
 import           Data.Delta
 import qualified Data.Foldable       as Fold
+import           Data.Label
 import           Data.List
 import qualified Data.Map.Strict     as Map
 import           Data.Monoid
 import           Data.Sigma
-import           Data.State
 
 class Ways a where
 	oposite::a -> a
@@ -76,7 +76,7 @@ class (Applicative t) => Tapeable t a where
 	getHead::t a -> a
 	liftTape::(Monoid (t a)) => [a] -> t a
 
-data MultiTape t a = MT [t a] deriving(Show, Eq)
+newtype MultiTape t a = MT [t a]
 
 getMHead::(Tapeable t a) => MultiTape t a -> [a]
 getMHead (MT ts) = [getHead t | t<-ts]
@@ -88,7 +88,7 @@ class (Tapeable t b, Ways w) => TuringM t b w where
 	moveHead::(Monoid b) => w -> t b -> t b
 
 data Model a b c where
-	TS::(Ways c) => Delta a b c->State a->Final a->Model a b c
+	TS::(Ways c) => Delta a b c->Label a->Final a->Model a b c
 
 data MultiModel a b c where
-	MTS::(Ways c) => MDelta a b c->State a->[Final a]->MultiModel a b c
+	MTS::(Ways c) => MDelta a b c->Label a->[Final a]->MultiModel a b c
