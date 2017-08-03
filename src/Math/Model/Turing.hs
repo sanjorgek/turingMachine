@@ -67,7 +67,7 @@ liftMD = liftDAux
 liftDAux:: (Ord a, Ord b) => [(a,b,a,b,c)]-> (:->:) a b (b,c)
 liftDAux ls = let
 		(as,bs,cs,ds,es) = unzip5 ls
-		f = map return
+		f = fmap return
 		xs = zip (f as) bs
 		ys = zip (f cs) (zip ds es)
 	in Map.fromList (zip xs ys)

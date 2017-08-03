@@ -73,7 +73,7 @@ Lift a list of 3-tuples to a Delta
 >>>let delta = liftDelta [(0,'0',0),(0,'1',1),(1,'0',1),(1,'1',0)]
 -}
 liftDelta::(Ord a) => [(a,Symbol,a)] -> Delta a
-liftDelta ds = liftD $ map tupleVoid ds
+liftDelta ds = liftD $ fmap tupleVoid ds
 
 {-|
 Transition function that for every pair, a State and a Symbol by domain, decide
@@ -87,7 +87,7 @@ Lift a list of 3-tuples to a non deterministic delta
 >>>let deltaN = liftNDelta [(0,'0',[0]),(0,'1',[1]),(1,'0',[1]),(1,'1',[0])]
 -}
 liftNDelta::(Ord a) => [(a,Symbol,[a])] -> NDelta a
-liftNDelta ds = liftND $ map tupleVoid ds
+liftNDelta ds = liftND $ fmap tupleVoid ds
 
 {-|
 Transducer function
@@ -101,7 +101,7 @@ tupleMidVoid (a, b) = (a, (), b)
 Lift simple transducer function
 -}
 liftL1::(Ord a) => [(a, Symbol)] -> Lambda1 a
-liftL1 = liftL . map tupleMidVoid
+liftL1 = liftL . fmap tupleMidVoid
 
 {-|
 Transducer function with output at transition
@@ -396,7 +396,7 @@ succN a 0 = a
 succN a n = succN (succ a) (n-1)
 
 newLabel::(Enum a, Ord a) => a -> Set.Set (LabelSS a) -> LabelSS a -> Label a
-newLabel o sqsq qsq = Q $ succN o $ enumDom sqsq qsq
+newLabel o sqsq qsq = Q . succN o $ enumDom sqsq qsq
 
 mapSetLabel::(Enum a, Ord a) => a -> Set.Set (LabelSS a) -> Set.Set (LabelSS a) -> Set.Set (Label a)
 mapSetLabel o sqsq = Set.map $ newLabel o sqsq
@@ -456,7 +456,7 @@ automatonCardinality af = let
     alp = getAlphabet afm
     n = allStateSize afm
     g = kWords alp
-    acceptedWord = acceptWord afm $ concatMap g [n..(2*(n-1))]
+    acceptedWord = acceptWord afm $ g =<< [n..(2*(n-1))]
   in if acceptedWord
     then Numerable
-    else Fin $ genericLength $ filterWords afm $ lessKWords alp (n-1)
+    else Fin . genericLength . filterWords afm $ lessKWords alp (n-1)

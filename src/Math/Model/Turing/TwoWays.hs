@@ -29,7 +29,7 @@ import           Math.Model.Turing
 data Tape a = T [a] a [a] deriving(Show, Eq)
 
 instance Functor Tape where
-	fmap f (T xs a ys) = T (map f xs) (f a) (map f ys)
+	fmap f (T xs a ys) = T (fmap f xs) (f a) (fmap f ys)
 
 instance Applicative Tape where
 	pure x = T [] x []
@@ -57,8 +57,8 @@ instance Tapeable Tape [Symbol] where
 	getHead (T _ as _) = as
 	liftTape [] = T [[]] [blank] [[]]
 	liftTape wss = let
-			f = map head
-			g = map tail
+			f = fmap head
+			g = fmap tail
 		in T (genericReplicate (genericLength wss) []) (f wss) (g wss)
 
 instance TuringM Tape Symbol LRS where
@@ -79,8 +79,8 @@ instance TuringM Tape [Symbol] LRS where
 			g x = genericReplicate (genericLength x) mempty
 		in T (f xss as) (g as) l
 	moveHead R (T xss as yss) = let
-			f = map head
-			g = map tail
+			f = fmap head
+			g = fmap tail
 			h = zipWith (\x y -> x++[y])
 		in T (h xss as) (f yss) (g yss)
 	moveHead L (T [] as yss) = let
@@ -92,7 +92,7 @@ instance TuringM Tape [Symbol] LRS where
 			g x = genericReplicate (genericLength x) mempty
 		in T l (g as) (f as yss)
 	moveHead L (T xss as yss) = let
-			f = map last
-			g = map init
+			f = fmap last
+			g = fmap init
 			h = zipWith (:)
 		in T (g yss) (f yss) (h as xss)

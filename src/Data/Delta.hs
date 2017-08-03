@@ -64,7 +64,7 @@ Lift a generic delta/map from a 3-tuple list
 liftL :: (Ord a, Ord p) => [(a, p, o)] -> (:*>:) a p o
 liftL ds = let
     (xs, ys, zs) = unzip3 ds
-    f = map return
+    f = fmap return
     nds = zip (zip (f xs) ys) zs
   in Map.fromList nds
 
@@ -97,7 +97,7 @@ Lifts a deterministic delta from a 4-tuple list
 liftD::(Ord a, Ord p1) => [(a, p1, a, p2)] -> (:->:) a p1 p2
 liftD ds = let
     (xs, ys, ws, zs) = unzip4 ds
-    as = zip (map return ws) zs
+    as = zip (fmap return ws) zs
   in liftL $ zip3 xs ys as
 
 {-|
@@ -121,8 +121,8 @@ Lifts a non-deterministic delta from a 4-tuple list
 liftND::(Ord a, Ord p1) => [(a, p1, [a], p2)] -> (:-<:) a p1 p2
 liftND ds = let
     (xs, ys, wss, zs) = unzip4 ds
-    f = Set.fromList . map return
-    as = zip (map f wss) zs
+    f = Set.fromList . fmap return
+    as = zip (fmap f wss) zs
   in liftL $ zip3 xs ys as
 
 {-|
@@ -137,49 +137,49 @@ nextND dt k = let
 Gets all params at domain, for (:->:)
 -}
 getFirstParam::(Eq b) => Map.Map (a, b) a1 -> [b]
-getFirstParam = nub . map snd . Map.keys
+getFirstParam = nub . fmap snd . Map.keys
 
 {-|
 Gets all params at domain, for (:-<:)
 -}
 getFirstParamSet::(Ord b) => Map.Map (a, b) a1 -> Set.Set b
-getFirstParamSet = Set.fromList . map snd . Map.keys
+getFirstParamSet = Set.fromList . fmap snd . Map.keys
 
 {-|
 Gets all params at range, for (:->:)
 -}
 getSecondParam::(Eq b) => Map.Map k (a, b) -> [b]
-getSecondParam = nub . map snd . Map.elems
+getSecondParam = nub . fmap snd . Map.elems
 
 {-|
 Gets all params at range, for (:-<:)
 -}
 getSecondParamSet::(Ord b) => Map.Map k (a, b) -> Set.Set b
-getSecondParamSet = Set.fromList . map snd . Map.elems
+getSecondParamSet = Set.fromList . fmap snd . Map.elems
 
 {-|
 Gets all states at domain, for (:->:)
 -}
 getStateDomain::(Eq a) => Map.Map (a, b) a1 -> [a]
-getStateDomain = nub . map fst . Map.keys
+getStateDomain = nub . fmap fst . Map.keys
 
 {-|
 Gets all states at domain, for (:-<:)
 -}
 getStateDomainSet::(Ord a) => Map.Map (a, b) a1 -> Set.Set a
-getStateDomainSet = Set.fromList . map fst . Map.keys
+getStateDomainSet = Set.fromList . fmap fst . Map.keys
 
 {-|
 Gets first param at range, for (:->:)
 -}
 getStateRange::(Eq a) => Map.Map k (a, b) -> [a]
-getStateRange = nub . map fst . Map.elems
+getStateRange = nub . fmap fst . Map.elems
 
 {-|
 Gets first param at range, for (:-<:)
 -}
 getStateRangeSet::(Ord a) => Map.Map k (a, b) -> Set.Set a
-getStateRangeSet = Set.fromList . map fst . Map.elems
+getStateRangeSet = Set.fromList . fmap fst . Map.elems
 
 {-|
 Gets state at range in a list, for (:->:)
@@ -197,10 +197,10 @@ getStateRangeSetD = getStateRangeSet
 Gets state at range in a list, for (:-<:)
 -}
 getStateRangeND::(Ord a) => (:-<:) a p1 p2 -> [Label a]
-getStateRangeND = Set.toList . Set.unions . map fst . Map.elems
+getStateRangeND = Set.toList . Set.unions . fmap fst . Map.elems
 
 {-|
 Gets state at range in a set, for (:->:) and (:-<:)
 -}
 getStateRangeSetND::(Ord a) => (:-<:) a p1 p2 -> Set.Set (Label a)
-getStateRangeSetND = Set.unions . map fst . Map.elems
+getStateRangeSetND = Set.unions . fmap fst . Map.elems

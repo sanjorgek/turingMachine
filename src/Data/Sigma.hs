@@ -64,12 +64,12 @@ enumWord::Alphabet -> Wd -> Integer
 enumWord sig w = let
     sigL = Set.toList sig
     n = genericLength sigL
-    map = Map.fromList (zip (Set.toList sig) [1..])
+    map' = Map.fromList (zip (Set.toList sig) [1..])
     f [] = 0
-    f xs = (n * f (init xs))+(map Map.! last xs)
+    f xs = (n * f (init xs))+(map' Map.! last xs)
   in f w
 
-closureAlph' sigL = map (:"") sigL ++ [x:ys | ys<-closureAlph' sigL, x<-sigL]
+closureAlph' sigL = fmap (:"") sigL ++ [x:ys | ys<-closureAlph' sigL, x<-sigL]
 
 {-|
 Gives the Kleene Closure for all alphabets. closureAlph is a infinite list of

@@ -10,7 +10,7 @@ import           Test.QuickCheck
 instance (Arbitrary a) => Arbitrary (Label a) where
   arbitrary = do
     x <- arbitrary
-    (oneof . map return) [QE, Q x]
+    (oneof . fmap return) [QE, Q x]
 
 terminalTest = describe "terminal" $ do
   prop "Not in" $

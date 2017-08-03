@@ -32,12 +32,11 @@ instance (Show a) => Show (Tracks a) where
 	show (Track xts ts yts) = let
 			f x = "--" ++ show x ++ "\n"
 			g x = "->" ++ show x ++ "\n"
-			h = concatMap
-		in h f xts ++ g ts ++ h f yts
+		in (f =<< xts) ++ g ts ++ (f =<< yts)
 
 instance Functor Tracks where
 	fmap f (Track xts ts yts) = let
-			g = map (fmap f)
+			g = fmap (fmap f)
 		in Track (g xts) (fmap f ts) (g yts)
 
 instance Applicative Tracks where

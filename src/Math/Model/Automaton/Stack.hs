@@ -53,10 +53,10 @@ Takes a list of tuples and lift a Delta
 liftDelta:: Ord a => [(a, Wd, Symbol, a, Wd)]-> Delta a
 liftDelta xs = let
     (as,bs,cs,ds,es) = unzip5 xs
-    f = map Q
+    f = fmap Q
     g [] = Nothing
     g (x:_) = Just x
-    ps = zip (map g bs) cs
+    ps = zip (fmap g bs) cs
     ks = zip (f as) ps
     rs = zip (f ds) es
   in Map.fromList (zip ks rs)
@@ -79,11 +79,11 @@ getSigma (_:xs) = getSigma xs
 
 -- |Gives a input character, included epsilon
 getInputAlphabet :: StackA a -> [Maybe Symbol]
-getInputAlphabet (Stack dn _ _ _) = (fst . unzip . getFirstParam) dn
+getInputAlphabet (Stack dn _ _ _) = (fmap fst . getFirstParam) dn
 
 -- |Gives a stack alphabet
 getStackAlphabet :: StackA a -> [Symbol]
-getStackAlphabet (Stack dn _ _ _) = (snd . unzip . getFirstParam) dn
+getStackAlphabet (Stack dn _ _ _) = (fmap snd . getFirstParam) dn
 
 cleanStacks::[(Label a, Wd)]->[(Label a, Wd)]
 cleanStacks [] = []

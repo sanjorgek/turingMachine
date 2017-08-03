@@ -16,7 +16,7 @@ import           Test.QuickCheck.Variant
 
 returnEnum = return . toEnum
 
-oneOfEnum = oneof . map returnEnum
+oneOfEnum = oneof . fmap returnEnum
 
 instance Variant () where
   invalid = return ()
@@ -36,13 +36,13 @@ instance (Variant a) => Variant [a] where
   valid = do
     x <- valid
     xs <- valid
-    (oneof . map return) [x:xs, []]
+    (oneof . fmap return) [x:xs, []]
   invalid = do
     x <- invalid
     xs <- invalid
     y <- valid
     ys <- valid
-    (oneof . map return) [[x], x:xs, x:ys, y:xs]
+    (oneof . fmap return) [[x], x:xs, x:ys, y:xs]
 
 instance (Arbitrary a) => Arbitrary (Label a) where
   arbitrary = oneof [invalid, valid]
@@ -53,7 +53,7 @@ instance (Variant a, Variant b) => Variant ((,) a b) where
     y <- invalid
     z <- valid
     w <- valid
-    (oneof . map return) [(x,y), (x,z), (w,y)]
+    (oneof . fmap return) [(x,y), (x,z), (w,y)]
   valid = do
     x <- valid
     y <- valid
@@ -65,7 +65,7 @@ instance (Ord a, Variant a) => Variant (Set.Set a) where
     return $ Set.fromList xs
   valid = do
     xs <- valid
-    (oneof . map return) [Set.empty, Set.fromList xs]
+    (oneof . fmap return) [Set.empty, Set.fromList xs]
 
 instance (Ord k, Variant k, Variant a) => Variant (Map.Map k a) where
   invalid = do
@@ -73,7 +73,7 @@ instance (Ord k, Variant k, Variant a) => Variant (Map.Map k a) where
     return $ Map.fromList xs
   valid = do
     xs <- valid
-    (oneof . map return) [Map.empty, Map.fromList xs]
+    (oneof . fmap return) [Map.empty, Map.fromList xs]
 
 instance (Ord a,Arbitrary a) => Variant (FiniteA a) where
   invalid = do
@@ -91,7 +91,7 @@ instance (Ord a, Arbitrary a) => Arbitrary (FiniteA a) where
   arbitrary = do
     afn <- invalid
     af <- valid
-    (oneof . map return) [afn, af]
+    (oneof . fmap return) [afn, af]
 
 pairWord = F (liftDelta [(1,'0',1),(1,'1',2),(2,'0',2),(2,'1',1)]) (Set.fromList [Q 2]) (Q 2)
 
@@ -99,8 +99,7 @@ emptyLang1 = F (liftDelta [(1,'0',1),(1,'1',2),(2,'0',2),(2,'1',1)]) (Set.fromLi
 
 finiteLang = F (liftDelta []) (Set.fromList [Q 2]) (Q 2)
 
-finiteAut = describe "Finite automaton check" $
-  it "pair of one's" $ do
+finiteAut = describe "Finite automaton check" . it "pair of one's" $ do
     checkString pairWord "" `shouldBe` True
     checkString pairWord "00000" `shouldBe` True
     checkString pairWord "00101" `shouldBe` True
@@ -152,8 +151,7 @@ cardinalityTest = describe "Cardinal" $ do
 
 
 main::IO ()
-main = hspec $
-  describe "Math.Model.Automaton.Finite" $ do
+main = hspec . describe "Math.Model.Automaton.Finite" $ do
     finiteAut
     transDetTest
     cardinalityTest
