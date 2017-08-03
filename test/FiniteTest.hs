@@ -6,7 +6,7 @@ import           Data.Cardinal
 import           Data.Helper
 import qualified Data.Map                    as Map
 import qualified Data.Set                    as Set
-import           Data.State
+import           Data.Label
 import           Math.Model.Automaton.Finite
 import           Test.Hspec
 import           Test.Hspec.QuickCheck
@@ -26,7 +26,7 @@ instance Variant Char where
   invalid = oneOfEnum $ [0..31]++[127..1114111]
   valid = oneOfEnum [32..126]
 
-instance (Arbitrary a) => Variant (State a) where
+instance (Arbitrary a) => Variant (Label a) where
   invalid = return QE
   valid = do
     x <- arbitrary
@@ -44,7 +44,7 @@ instance (Variant a) => Variant [a] where
     ys <- valid
     (oneof . map return) [[x], x:xs, x:ys, y:xs]
 
-instance (Arbitrary a) => Arbitrary (State a) where
+instance (Arbitrary a) => Arbitrary (Label a) where
   arbitrary = oneof [invalid, valid]
 
 instance (Variant a, Variant b) => Variant ((,) a b) where

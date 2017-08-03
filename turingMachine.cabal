@@ -52,7 +52,7 @@ library
 test-suite state
   type:                exitcode-stdio-1.0
   hs-source-dirs:      test
-  main-is:             StateTest.hs
+  main-is:             LabelTest.hs
   --other-modules:
   build-depends:       base
                        , containers
