@@ -1,9 +1,12 @@
 machine:
-  ghc: 
+  ghc:
     version: 7.10.2
 
 test:
   pre:
-    - cabal install hspec
-    - cabal install QuickCheck
     - cabal install containers
+    - cabal install QuickCheck
+    - cabal install hspec
+    - cabal install QuickCheckVariant
+    - cabal install hspecVariant
+    - cabal install mtl
