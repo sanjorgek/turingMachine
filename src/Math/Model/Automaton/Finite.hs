@@ -57,6 +57,7 @@ import           Data.List
 import qualified Data.Map.Strict as Map
 import qualified Data.Set        as Set
 import           Data.Sigma
+import           Control.Monad.State.Lazy
 
 tupleVoid:: (a,b,c) -> (a,b,c,())
 tupleVoid (a,b,c) = (a,b,c,())
@@ -137,19 +138,22 @@ getAlphabetList (FN dn _ _) = getFirstParam dn
 {-|
 For some delta, an initial state anf a word returns final state for that word
 -}
-endState::(Ord a) => Delta a -> Label a -> Wd -> Label a
-endState _ q []      = q
-endState dt q (x:xs) = endState dt (nextD dt (q,x)) xs
+endState:: (Ord a) => Delta a -> Wd -> State (Label a) (Label a)
+endState _ [] = get
+endState d (x:xs) = do
+	q <- get
+	put (nextD d (q,x))
+	endState d xs
 
 {-|
 Same as endState but work with no deterministic delta
 -}
-endStates::(Ord a) => NDelta a -> SetLabel a -> Wd -> SetLabel a
-endStates _ sq [] = sq
-endStates dn sq (x:xs) = let
-    nsq = Set.map (\q -> nextND dn (q,x)) sq
-  in
-    endStates dn ((Set.unions . Set.toList) nsq) xs
+endStates::(Ord a) => NDelta a -> Wd -> State (SetLabel a) (SetLabel a)
+endStates _ [] = get
+endStates dn (x:xs) = do
+	sq <- get
+	put ((Set.unions . Set.toList) (Set.map (\q -> nextND dn (q,x)) sq))
+	endStates dn xs
 
 {-|
 Executes a automaton over a word
@@ -161,11 +165,11 @@ False
 -}
 checkString::(Ord a) => FiniteA a -> Wd -> Bool
 checkString (F d qF s) ws = let
-		q = endState d s ws
+		q = evalState (endState d ws) s
 		f y = (not.isError) y && terminal qF y
 	in f q
 checkString (FN dn qF s) ws = let
-		sq = endStates dn (Set.fromList [s]) ws
+		sq = evalState (endStates dn ws) (Set.fromList [s])
 		qs = Set.toList sq
 		f y = (not.isError) y && terminal qF y
 		g = any f
@@ -182,24 +186,37 @@ data Transductor a =
 	Moore (Delta a) (Lambda1 a) (Final a) (Label a)
 	|Mealy (Delta a) (Lambda2 a) (Final a) (Label a) deriving(Show, Eq)
 
+
+transMoore:: (Ord a) => Delta a -> Lambda1 a -> Wd -> State (Wd, Label a) (Label a)
+transMoore _ _ [] = do
+	(_, q) <- get
+	return q
+transMoore d l (x:xs) = do
+	(ys, q) <- get
+	put (ys++[nextSymbol l (q, ())], nextD d (q,x))
+	transMoore d l xs
+
+transMealy:: (Ord a) => Delta a -> Lambda2 a -> Wd -> State (Wd, Label a) (Label a)
+transMealy _ _ [] = do
+	(_, q) <- get
+	return q
+transMealy d l (x:xs) = do
+	(ys, q) <- get
+	put (ys++[nextSymbol l (q,x)], nextD d (q,x))
+	transMealy d l xs
+
 {-|
 For every transducer, given a word the automaton change all symbols in lambda
 -}
-translate::(Ord a) => Transductor a -> Wd -> Wd
+translate::(Ord a) => Transductor a -> Wd -> (Wd, Bool)
 translate (Moore d l qF s) ws = let
-		(q, w) = translate' d l s ws []
-	in w
-	where
-		translate' _ _ QE xs ys = (QE, "Error: \nCadena:"++xs++"\nResp parcial: "++ys)
-		translate' _ _ q [] xs = (q, xs)
-		translate' dt lm q (y:ys) xs = translate' dt lm (nextD dt (q,y)) ys (xs++[nextSymbol lm (q, ())])
+		(q, (nws, _)) = runState (transMoore d l ws) ([], s)
+		f y = (not.isError) y && terminal qF y
+	in (nws, f q)
 translate (Mealy d l qF s) ws = let
-		(q, w) = translate' d l s ws []
-	in w
-	where
-		translate' _ _ QE xs ys = (QE, "Error: \nCadena:"++xs++"\nResp parcial: "++ys)
-		translate' _ _ q [] xs = (q, xs)
-		translate' dt lm q (x:xs) ys = translate' dt lm (nextD dt (q, x)) xs (ys++[nextSymbol lm (q,x)])
+		(q, (nws, _)) = runState (transMealy d l ws) ([], s)
+		f y = (not.isError) y && terminal qF y
+	in (nws, f q)
 
 reachableStates1 alp d xs = let
     qs = xs ++ [nextD d (y,x) | x<-alp, y<-xs]
