@@ -2,8 +2,7 @@
 {-# LANGUAGE TypeSynonymInstances #-}
 module Main where
 
-import           Data.Cardinal
-import           Data.Helper
+import           Data.Numerable
 import qualified Data.Map                    as Map
 import qualified Data.Set                    as Set
 import           Data.Label

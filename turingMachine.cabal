@@ -2,7 +2,7 @@ name:                turingMachine
 -- PVP summary:      +-+------- breaking API changes
 --                   | | +----- non-breaking API additions
 --                   | | | +--- code changes with no API change
-version:             1.0.0.0
+version:             2.0.0.0
 synopsis:            An implementation of Turing Machine and Automaton
 description:         An implementation of Turing Machine and Automaton for
                      language theory
@@ -23,9 +23,9 @@ source-repository head
   location:            git@github.com:sanjorgek/turingMachine.git
 
 library
-  exposed-modules:     Data.Cardinal
-                       , Data.Delta
+  exposed-modules:     Data.Delta
                        , Data.Helper
+                       , Data.Numerable
                        , Data.Sigma
                        , Data.Label
                        , Math.Model.Automaton.Finite
@@ -57,9 +57,9 @@ test-suite state
   build-depends:       base
                        , containers
                        , hspec
-                       , hspecVariant
+                       , hspecVariant >=1 && <2
                        , QuickCheck
-                       , QuickCheckVariant
+                       , QuickCheckVariant >=1 && <2
                        , turingMachine
   default-language:    Haskell2010
 
@@ -70,6 +70,9 @@ test-suite sigma
   --other-modules:
   build-depends:       base
                        , hspec
+                       , hspecVariant >=1 && <2
+                       , QuickCheck
+                       , QuickCheckVariant >=1 && <2
                        , QuickCheck
                        , containers
                        , turingMachine
@@ -82,9 +85,9 @@ test-suite finite
   --other-modules:
   build-depends:       base
                        , hspec
-                       , hspecVariant
+                       , hspecVariant >=1 && <2
                        , QuickCheck
-                       , QuickCheckVariant
+                       , QuickCheckVariant >=1 && <2
                        , containers
                        , turingMachine
   default-language:    Haskell2010

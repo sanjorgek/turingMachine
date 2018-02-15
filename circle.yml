@@ -1,12 +1,14 @@
 machine:
   ghc:
-    version: 7.10.2
+    version: 7.10.1
+
+dependencies:
+  override:
+    - cabal update
+    - cabal sandbox init
+    - cabal install --enable-tests --enable-benchmarks
+    - cabal configure --enable-tests --enable-benchmarks
 
 test:
-  pre:
-    - cabal install containers
-    - cabal install QuickCheck
-    - cabal install hspec
-    - cabal install QuickCheckVariant
-    - cabal install hspecVariant
-    - cabal install mtl
+  post:
+    - cabal bench

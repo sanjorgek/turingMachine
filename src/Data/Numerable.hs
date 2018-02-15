@@ -12,8 +12,7 @@ Portability : portable
 
 Cardinal definitions
 -}
-module Data.Cardinal where
-import           Data.Monoid
+module Data.Numerable where
 
 {-|
 All sets can be one and only one:
@@ -26,7 +25,7 @@ data Essence = Empty | Occupied deriving(Show, Eq, Ord, Bounded)
 {-|
 Simple cardinality definition, we work here with numerable sets.
 
-All set have one and only one:
+All numerable set have one and only one:
 
 1. A finite size
 

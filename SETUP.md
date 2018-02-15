@@ -1,7 +1,8 @@
 ## Settings
 Init
 ~~~bash
-cabal configure
+cabal configure --enable-tests --enable-benchmarks
+cabal install --enable-tests --enable-benchmarks
 cabal build
 cabal check
 hlint .
@@ -24,5 +25,5 @@ Test
 ~~~bash
 cabal test --show-details=always
 cabal test SUITE --show-details=always
+cabal bench
 ~~~
-
