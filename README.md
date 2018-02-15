@@ -1,7 +1,7 @@
 # Turing Machine Model
 An implementation of Turing Machine and Automaton for Language Theory
 
-  [![hspecVariant](https://img.shields.io/badge/turingMachine-v2.0.0.0-blue.svg?style=plastic)](https://hackage.haskell.org/package/hspecVariant)
+  [![turingMachine](https://img.shields.io/badge/turingMachine-v2.0.0.0-blue.svg?style=plastic)](https://hackage.haskell.org/package/turingMachine)
   [![Build Status](https://travis-ci.org/sanjorgek/turingMachine.svg?branch=master)](https://travis-ci.org/sanjorgek/turingMachine)
   [![Code Climate](https://codeclimate.com/github/sanjorgek/turingMachine/badges/gpa.svg)](https://codeclimate.com/github/sanjorgek/turingMachine)
   [![Issue Count](https://codeclimate.com/github/sanjorgek/turingMachine/badges/issue_count.svg)](https://codeclimate.com/github/sanjorgek/turingMachine)
