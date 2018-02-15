@@ -1,15 +1,15 @@
-{-# OPTIONS_GHC -fno-warn-tabs #-}
+{-# OPTIONS_GHC -fno-warn-tabs      #-}
 {-# OPTIONS_HADDOCK show-extensions #-}
 {-|
-Module      : State
-Description : Simple state data
+Module      : Data.State
+Description : Simple label state data
 Copyright   : (c) Jorge Santiago Alvarez Cuadros, 2016
 License     : GPL-3
 Maintainer  : sanjorgek@ciencias.unam.mx
 Stability   : experimental
 Portability : portable
 
-Simple State function, have an isomorphism with Maybe but order are diferent
+Simple Label-State function, have an isomorphism with Maybe but order are diferent
 -}
 module Data.Label
 (
@@ -30,7 +30,7 @@ import           Data.Monoid
 import qualified Data.Set            as Set
 
 {-|
-Macine states are only a label, maybe a letter
+Machine states are only a label, maybe a letter
 -}
 data Label a =
 	-- |State constructor
@@ -90,28 +90,28 @@ instance F.Foldable Label where
     foldl f z (Q x) = f z x
 
 {-|
-Final state represent a set of states which elements put end to computation
+Final label state represent a set of states which elements put end to computation
 -}
 type Final a = Set.Set (Label a)
 
 {-|
-Tells if a state is final
+Tells if a label state is final
 -}
 terminal :: (Ord a) => Final a -> Label a -> Bool
 terminal qs q = Set.member q qs
 
 {-|
-Tells if a state is a error state
+Tells if a label state is a error state
 -}
 isError::(Eq a) => Label a -> Bool
 isError = (QE==)
 
 {-|
-Alias for a set of states
+Alias for a set of lalbel states
 -}
 type SetLabel a = Set.Set (Label a)
 
 {-|
-Alias for a state of a set of states
+Alias for a label state of a set of label states
 -}
 type LabelSS a = Label (SetLabel a)

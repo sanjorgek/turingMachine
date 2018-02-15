@@ -1,7 +1,7 @@
 {-# OPTIONS_HADDOCK show-extensions #-}
-{-# OPTIONS_GHC -fno-warn-tabs #-}
-{-# LANGUAGE FlexibleInstances    #-}
-{-# LANGUAGE TypeSynonymInstances #-}
+{-# OPTIONS_GHC -fno-warn-tabs      #-}
+{-# LANGUAGE FlexibleInstances      #-}
+{-# LANGUAGE TypeSynonymInstances   #-}
 {-|
 Module      : Sigma
 Description : Alphabet and symbols
