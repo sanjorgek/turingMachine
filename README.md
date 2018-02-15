@@ -49,7 +49,7 @@ Stack memory machine with states
   - [ ] Transductor
     - [x] Moore
     - [x] Mealy
-    - [x] translate 
+    - [x] translate
     - [ ] Moore to Mealy, and viceversa   
   - [ ] Recognizer with epsilon transitions
     - [ ] def
@@ -59,6 +59,7 @@ Stack memory machine with states
   - [x] Deterministic stack automaton def
   - [ ] Non-deterministic stack automaton def
   - [ ] Non-deterministic to deterministic stack automaton
+  - [ ] Recognizer with epsilon transitions
 - [ ] Turing Machine
   - [ ] Class def
   - [ ] Tape def

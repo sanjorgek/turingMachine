@@ -1,10 +1,12 @@
 language: haskell
 ghc:
   - 7.6
+  - 7.8
 install:
-  - cabal install containers
-  - cabal install QuickCheck
-  - cabal install hspec
-  - cabal install QuickCheckVariant
-  - cabal install hspecVariant
-  - cabal install mtl
+  - cabal install --enable-tests --enable-benchmarks
+
+script:
+  - cabal configure --enable-tests --enable-benchmarks
+  - cabal build
+  - cabal test
+  - cabal bench
