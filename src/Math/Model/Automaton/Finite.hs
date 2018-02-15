@@ -1,6 +1,6 @@
-{-# OPTIONS_GHC -fno-warn-tabs #-}
+{-# OPTIONS_GHC -fno-warn-tabs      #-}
 {-# OPTIONS_HADDOCK show-extensions #-}
-{-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE TypeOperators          #-}
 {-|
 Module      : Finite Automaton
 Description : Finite Automaton
@@ -35,23 +35,25 @@ module Math.Model.Automaton.Finite
   ,endStates
   -- ** Create deltas and lambdas
 	,liftDelta
+	,liftNDelta
 	,liftL1
 	,liftL2
-	,liftNDelta
   -- ** Mininmize delta
   ,reachableDelta
   ,distinguishableDelta
   ,minimizeFinite
   -- ** Equivalence
   ,convertFA
+	,transducerToFinite
+	,finiteToMoore
+	,finiteToMealy
   -- * Language
   ,automatonEssence
   ,automatonCardinality
 ) where
-import           Data.Cardinal
+import           Data.Numerable
 import           Data.Delta
 import qualified Data.Foldable   as Fold
-import           Data.Helper
 import           Data.Label
 import           Data.List
 import qualified Data.Map.Strict as Map
@@ -61,6 +63,20 @@ import           Control.Monad.State.Lazy
 
 tupleVoid:: (a,b,c) -> (a,b,c,())
 tupleVoid (a,b,c) = (a,b,c,())
+
+{-|
+Union of set monad
+-}
+unionsFold:: (Ord a, Fold.Foldable t) => t (Set.Set a) -> Set.Set a
+unionsFold = Fold.foldr Set.union Set.empty
+
+{-|
+Size of a set, with large integers
+-}
+setGenericSize:: (Ord a) => Set.Set a -> Integer
+setGenericSize s = if Set.null s
+  then 0
+  else 1 + setGenericSize (Set.delete (Set.findMin s) s)
 
 {-|
 Transition function that for every pair, a State and a Symbol by domain, decide
@@ -82,13 +98,18 @@ next list of states in machine
 -}
 type NDelta a = (:-<:) a Symbol ()
 
+tupleLast:: (a,b,[c]) -> (a,b,[(c,())])
+tupleLast (a,b,xs) = let
+		f x = (x,())
+	in (a,b,fmap f xs)
+
 {-|
 Lift a list of 3-tuples to a non deterministic delta
 
 >>>let deltaN = liftNDelta [(0,'0',[0]),(0,'1',[1]),(1,'0',[1]),(1,'1',[0])]
 -}
 liftNDelta::(Ord a) => [(a,Symbol,[a])] -> NDelta a
-liftNDelta ds = liftND $ fmap tupleVoid ds
+liftNDelta ds = liftND $ fmap tupleLast ds
 
 {-|
 Transducer function
@@ -152,7 +173,7 @@ endStates::(Ord a) => NDelta a -> Wd -> State (SetLabel a) (SetLabel a)
 endStates _ [] = get
 endStates dn (x:xs) = do
 	sq <- get
-	put ((Set.unions . Set.toList) (Set.map (\q -> nextND dn (q,x)) sq))
+	put ((Set.unions . Set.toList) (Set.map (\q -> nextND dn () (q,x)) sq))
 	endStates dn xs
 
 {-|
@@ -218,6 +239,27 @@ translate (Mealy d l qF s) ws = let
 		f y = (not.isError) y && terminal qF y
 	in (nws, f q)
 
+{-|
+Transforms a Transducer to a Finite Autmaton
+-}
+transducerToFinite:: Transductor a -> FiniteA a
+transducerToFinite (Moore d _ qf s) = F d qf s
+transducerToFinite (Mealy d _ qf s) = F d qf s
+
+{-|
+Transforms a Finite Autmaton with some lambda to a Moore Transducer
+-}
+finiteToMoore:: (Enum a, Ord a) => FiniteA a -> Lambda1 a -> Transductor a
+finiteToMoore (F d qf s) l = Moore d l qf s
+finiteToMoore fn l = finiteToMoore (convertFA fn) l
+
+{-|
+Transforms a Finite Autmaton with some lambda to a Mealy Transducer
+-}
+finiteToMealy:: (Enum a, Ord a) => FiniteA a -> Lambda2 a -> Transductor a
+finiteToMealy (F d qf s) l = Mealy d l qf s
+finiteToMealy fn l = finiteToMealy (convertFA fn) l
+
 reachableStates1 alp d xs = let
     qs = xs ++ [nextD d (y,x) | x<-alp, y<-xs]
     nqs = (\\) (nub qs) [QE]
@@ -225,7 +267,7 @@ reachableStates1 alp d xs = let
     if nqs==xs then nqs else reachableStates1 alp d nqs
 
 reachableStates2 alp d xs = let
-    qs = (xs ++ concat [Set.toList (nextND d (y,x)) | x<-alp, y<-xs])\\[QE]
+    qs = (xs ++ concat [Set.toList (nextND d () (y,x)) | x<-alp, y<-xs])\\[QE]
     nqs = nub qs
   in
     if nqs==xs then nqs else reachableStates2 alp d nqs
@@ -271,7 +313,7 @@ distinguishableSet alp d partSet pi = let
 distinguishableSet2 alp nd partSet pi = let
     qM = Set.findMin pi
     eqD p q = (==) (partitionSet2 p partSet) (partitionSet2 q partSet)
-    g p q a = eqD (nextND nd (p, a)) (nextND nd (q, a))
+    g p q a = eqD (nextND nd () (p, a)) (nextND nd () (q, a))
     f p q = Fold.all (g p q) alp
     (sx, sy) = Set.partition (f qM) pi
   in Set.delete Set.empty $ Set.fromList [sx, sy]
@@ -327,7 +369,7 @@ distinguishableDelta afn@(FN nd sf si) = let
     allNewStateSet = Set.map f allState
     g q ndelta a = let
         k = (q, a)
-        nQ = nextND nd k
+        nQ = nextND nd () k
       in if Set.null nQ
         then ndelta
         else Map.insert k (Set.map f nQ, ()) ndelta
@@ -362,7 +404,7 @@ setState2Set = setState2Set' Set.empty
 
 nextStateSet::(Ord a) => NDelta a -> LabelSS a -> Symbol -> SetLabel a
 nextStateSet nd qsq a = let
-    f q = nextND nd (q, a)
+    f q = nextND nd () (q, a)
     g = Set.map f
     Q sq = fmap g qsq
   in unionsFold sq
@@ -438,7 +480,7 @@ Finite Autmaton Equivalence
 -}
 convertFA::(Enum a, Ord a) => FiniteA a -> FiniteA a
 convertFA (F d sqf q0) = let
-    f (x, y) = (Set.singleton x, y)
+    f (x, y) = Set.singleton (x, y)
   in
     FN (fmap f d) sqf q0
 convertFA afn@(FN nd sqf q0) = let
@@ -446,6 +488,9 @@ convertFA afn@(FN nd sqf q0) = let
   in
     mapAFLabel q0 afRare
 
+{-|
+Tells if a finite automaton had empty language or not.
+-}
 automatonEssence:: (Ord a) => FiniteA a -> Essence
 automatonEssence af@F{} = let
     (F d sqf q0) = reachableDelta af
@@ -467,6 +512,10 @@ allStateSize s = setGenericSize $ allStateSet s
 
 filterWords af = filter (checkString af)
 
+{-|
+Tells if a finite automaton had infinite language or the number or words in his
+language
+-}
 automatonCardinality::(Ord a) => FiniteA a -> Discrete
 automatonCardinality af = let
     afm = minimizeFinite af
