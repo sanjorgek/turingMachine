@@ -51,7 +51,10 @@ Stack memory machine with states
     - [x] Moore
     - [x] Mealy
     - [x] translate
-    - [ ] Moore to Mealy, and viceversa   
+    - [x] Transductor to Finite Automaton
+    - [x] Lift transducer with finite automaton
+    - [x] Moore to Mealy
+    - [ ] Mealy to Moore
   - [ ] Recognizer with epsilon transitions
     - [ ] def
     - [ ] Recognizer with epsilon transitions to Recognizer without epsilon transitions

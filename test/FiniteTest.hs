@@ -106,6 +106,18 @@ finiteAut = describe "Finite automaton check" . it "pair of one's" $ do
     checkString pairWord "11111" `shouldBe` False
     checkString pairWord "11011" `shouldBe` True
 
+deltaMoore = liftDelta [('B','0','B'),('B','1','C'),('C','0','C'),('C','1','A'),('A','0','A')]
+
+moore = Moore deltaMoore (liftL1 [('B','0'),('C','2'),('A','1')]) Set.empty (Q 'B')
+
+deltaMealy = liftDelta [('A','0','A'),('A','1','B'),('B','0','B'),('B','1','A')]
+
+mealy = Mealy deltaMealy (liftL2 [('A','0','1'),('A','1','1'),('B','0','0'),('B','1','0')]) (Set.singleton (Q 'B')) (Q 'A')
+
+mooreToMealy = describe "Transducer equivalence" . it "two examples" $ do
+  convertTA moore `shouldBe` Mealy deltaMoore (liftL2 [('A','0','1'),('C','1','1'),('C','0','2'),('B','0','0'),('B','1','2')]) Set.empty (Q 'B')
+--  convertTA mealy `shouldBe` Moore deltaMealy Map.empty (Set.singleton (Q 'B')) (Q 'A')
+
 transDetTest = describe "Transform" $ do
   prop "reachable check same" $
     \ af w -> checkString (reachableDelta (af::FiniteA Int)) w == checkString af w
@@ -152,5 +164,6 @@ cardinalityTest = describe "Cardinal" $ do
 main::IO ()
 main = hspec . describe "Math.Model.Automaton.Finite" $ do
     finiteAut
+    mooreToMealy
     transDetTest
     cardinalityTest

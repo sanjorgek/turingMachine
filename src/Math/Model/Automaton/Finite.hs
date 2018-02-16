@@ -43,7 +43,8 @@ module Math.Model.Automaton.Finite
   ,distinguishableDelta
   ,minimizeFinite
   -- ** Equivalence
-  ,convertFA
+	,convertFA
+  ,convertTA
 	,transducerToFinite
 	,finiteToMoore
 	,finiteToMealy
@@ -487,6 +488,21 @@ convertFA afn@(FN nd sqf q0) = let
     afRare = convertFA' afn
   in
     mapAFLabel q0 afRare
+
+{-|
+Finite Transducer Autmaton Similarity
+-}
+convertTA::(Ord a) => Transductor a -> Transductor a
+convertTA (Moore d l qf s) = let
+		f _ (QE,_) nl = nl
+		f (p,a) (q,_) nl = Map.insert (p,a) (nextSymbol l (q, ())) nl
+	in Mealy d (Map.foldrWithKey f Map.empty d) qf s
+convertTA (Mealy d l qf s) = let
+		f _ (QE,_) nl = nl
+		f (p,a) (q,_) nl = Map.insert (q,()) (nextSymbol l (p,a)) nl
+	in Moore d (Map.foldrWithKey f Map.empty d) qf s
+	--bad definition
+
 
 {-|
 Tells if a finite automaton had empty language or not.
