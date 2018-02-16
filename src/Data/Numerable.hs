@@ -2,7 +2,7 @@
 {-# OPTIONS_HADDOCK show-extensions #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-|
-Module      : Cardinal
+Module      : Numerable
 Description : Cardinal Def
 Copyright   : (c) Jorge Santiago Alvarez Cuadros, 2016
 License     : GPL-3
