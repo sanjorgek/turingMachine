@@ -120,9 +120,9 @@ mooreToMealy = describe "Transducer equivalence" . it "two examples" $ do
 
 transDetTest = describe "Transform" $ do
   prop "reachable check same" $
-    \ af w -> checkString (reachableDelta (af::FiniteA Int)) w == checkString af w
+    \ af w -> checkString (reachableFinite (af::FiniteA Int)) w == checkString af w
   prop "distinguishable check same" $
-    \ af w -> checkString (distinguishableDelta (af::FiniteA Int)) w == checkString af w
+    \ af w -> checkString (distinguishableFinite (af::FiniteA Int)) w == checkString af w
   prop "minimize check same" $
     \ af w -> checkString (minimizeFinite (af::FiniteA Int)) w == checkString af w
   prop "minimize" $

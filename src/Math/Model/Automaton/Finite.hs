@@ -16,41 +16,48 @@ reads a symbol
 module Math.Model.Automaton.Finite
 (
   -- * Recognizer
-  -- ** Functions
+  -- ** Deltas
 	Delta(..)
 	,NDelta(..)
-  -- ** Constructor
-	,FiniteA(..)
-	,checkString
-	-- * Transducer
-  -- ** Functions
-	,Lambda1(..)
-	,Lambda2(..)
-  -- ** Constructor
-	,Transductor(..)
-	,translate
-  -- * Auxiliar functions
-  ,getAlphabet
-  ,endState
-  ,endStates
-  -- ** Create deltas and lambdas
+	-- *** Create deltas
 	,liftDelta
 	,liftNDelta
+  -- ** Constructor
+	,FiniteA(..)
+	-- ** Functions
+	,getAlphabet
+	,checkString
+	-- *** Auxiliar functions
+	,nextState
+	,nextStates
+	-- ** Mininmize delta
+	,reachableFinite
+	,distinguishableFinite
+	,minimizeFinite
+	-- ** Language
+  ,automatonEssence
+  ,automatonCardinality
+	-- * Transducer
+  -- ** Lambdas
+	,Lambda1(..)
+	,Lambda2(..)
+	-- *** Create lambdas
 	,liftL1
 	,liftL2
-  -- ** Mininmize delta
-  ,reachableDelta
-  ,distinguishableDelta
-  ,minimizeFinite
-  -- ** Equivalence
+  -- ** Constructor
+	,Transductor(..)
+	-- ** Functions
+	,getOutputAlphabet
+	,translate
+	-- *** Auxiliar functions
+	,transMoore
+	,transMealy
+  -- * Equivalences
 	,convertFA
   ,convertTA
 	,transducerToFinite
 	,finiteToMoore
 	,finiteToMealy
-  -- * Language
-  ,automatonEssence
-  ,automatonCardinality
 ) where
 import           Data.Numerable
 import           Data.Delta
@@ -62,8 +69,8 @@ import qualified Data.Set        as Set
 import           Data.Sigma
 import           Control.Monad.State.Lazy
 
-tupleVoid:: (a,b,c) -> (a,b,c,())
-tupleVoid (a,b,c) = (a,b,c,())
+tupleAUX:: (a,b,c) -> (a,b,Label c)
+tupleAUX (a,b,c) = (a,b,Q c)
 
 {-|
 Union of set monad
@@ -83,7 +90,7 @@ setGenericSize s = if Set.null s
 Transition function that for every pair, a State and a Symbol by domain, decide
 next state in machine
 -}
-type Delta a = (:->:) a Symbol ()
+type Delta a = (:*>:) a Symbol (Label a)
 
 {-|
 Lift a list of 3-tuples to a Delta
@@ -91,7 +98,7 @@ Lift a list of 3-tuples to a Delta
 >>>let delta = liftDelta [(0,'0',0),(0,'1',1),(1,'0',1),(1,'1',0)]
 -}
 liftDelta::(Ord a) => [(a,Symbol,a)] -> Delta a
-liftDelta ds = liftD $ fmap tupleVoid ds
+liftDelta ds = liftL $ fmap tupleAUX ds
 
 {-|
 Transition function that for every pair, a State and a Symbol by domain, decide
@@ -150,32 +157,32 @@ data FiniteA a =
 Gets alphabet for some finite automaton
 -}
 getAlphabet:: FiniteA a -> Alphabet
-getAlphabet (F d _ _)   = getFirstParamSet d
-getAlphabet (FN dn _ _) = getFirstParamSet dn
+getAlphabet (F d _ _)   = getParamDomainSet d
+getAlphabet (FN dn _ _) = getParamDomainSet dn
 
 getAlphabetList::FiniteA a -> [Symbol]
-getAlphabetList (F d _ _)   = getFirstParam d
-getAlphabetList (FN dn _ _) = getFirstParam dn
+getAlphabetList (F d _ _)   = getParamDomain d
+getAlphabetList (FN dn _ _) = getParamDomain dn
 
 {-|
 For some delta, an initial state anf a word returns final state for that word
 -}
-endState:: (Ord a) => Delta a -> Wd -> State (Label a) (Label a)
-endState _ [] = get
-endState d (x:xs) = do
+nextState:: (Ord a) => Delta a -> Wd -> State (Label a) (Label a)
+nextState _ [] = get
+nextState d (x:xs) = do
 	q <- get
-	put (nextD d (q,x))
-	endState d xs
+	put (nextOutput d QE (q,x))
+	nextState d xs
 
 {-|
-Same as endState but work with no deterministic delta
+Same as nextState but work with no deterministic delta
 -}
-endStates::(Ord a) => NDelta a -> Wd -> State (SetLabel a) (SetLabel a)
-endStates _ [] = get
-endStates dn (x:xs) = do
+nextStates::(Ord a) => NDelta a -> Wd -> State (SetLabel a) (SetLabel a)
+nextStates _ [] = get
+nextStates dn (x:xs) = do
 	sq <- get
 	put ((Set.unions . Set.toList) (Set.map (\q -> nextND dn () (q,x)) sq))
-	endStates dn xs
+	nextStates dn xs
 
 {-|
 Executes a automaton over a word
@@ -187,11 +194,11 @@ False
 -}
 checkString::(Ord a) => FiniteA a -> Wd -> Bool
 checkString (F d qF s) ws = let
-		q = evalState (endState d ws) s
+		q = evalState (nextState d ws) s
 		f y = (not.isError) y && terminal qF y
 	in f q
 checkString (FN dn qF s) ws = let
-		sq = evalState (endStates dn ws) (Set.fromList [s])
+		sq = evalState (nextStates dn ws) (Set.fromList [s])
 		qs = Set.toList sq
 		f y = (not.isError) y && terminal qF y
 		g = any f
@@ -208,23 +215,28 @@ data Transductor a =
 	Moore (Delta a) (Lambda1 a) (Final a) (Label a)
 	|Mealy (Delta a) (Lambda2 a) (Final a) (Label a) deriving(Show, Eq)
 
-
+{-|
+Extends nextState function
+-}
 transMoore:: (Ord a) => Delta a -> Lambda1 a -> Wd -> State (Wd, Label a) (Label a)
 transMoore _ _ [] = do
 	(_, q) <- get
 	return q
 transMoore d l (x:xs) = do
 	(ys, q) <- get
-	put (ys++[nextSymbol l (q, ())], nextD d (q,x))
+	put (ys++[nextSymbol l (q, ())], nextOutput d QE (q,x))
 	transMoore d l xs
 
+{-|
+Extends nextState function
+-}
 transMealy:: (Ord a) => Delta a -> Lambda2 a -> Wd -> State (Wd, Label a) (Label a)
 transMealy _ _ [] = do
 	(_, q) <- get
 	return q
 transMealy d l (x:xs) = do
 	(ys, q) <- get
-	put (ys++[nextSymbol l (q,x)], nextD d (q,x))
+	put (ys++[nextSymbol l (q,x)], nextOutput d QE (q,x))
 	transMealy d l xs
 
 {-|
@@ -241,7 +253,14 @@ translate (Mealy d l qF s) ws = let
 	in (nws, f q)
 
 {-|
-Transforms a Transducer to a Finite Autmaton
+Gets alphabet for some finite automaton
+-}
+getOutputAlphabet:: Transductor a -> Alphabet
+getOutputAlphabet (Moore _ l _ _) = getRangeSet l
+getOutputAlphabet (Mealy _ l _ _) = getRangeSet l
+
+{-|
+Transforms a Transducer to a transducer Autmaton
 -}
 transducerToFinite:: Transductor a -> FiniteA a
 transducerToFinite (Moore d _ qf s) = F d qf s
@@ -262,7 +281,7 @@ finiteToMealy (F d qf s) l = Mealy d l qf s
 finiteToMealy fn l = finiteToMealy (convertFA fn) l
 
 reachableStates1 alp d xs = let
-    qs = xs ++ [nextD d (y,x) | x<-alp, y<-xs]
+    qs = xs ++ [nextOutput d QE (y,x) | x<-alp, y<-xs]
     nqs = (\\) (nub qs) [QE]
   in
     if nqs==xs then nqs else reachableStates1 alp d nqs
@@ -277,8 +296,8 @@ reachableStates2 alp d xs = let
 Minimaize a delta for some finite automaton.
 Gets a delta with all reachable states from initial state.
 -}
-reachableDelta::(Ord a) => FiniteA a -> FiniteA a
-reachableDelta af@(F d sqf qi) = let
+reachableFinite::(Ord a) => FiniteA a -> FiniteA a
+reachableFinite af@(F d sqf qi) = let
     alp = getAlphabetList af
     qs = reachableStates1 alp d [qi]
     allUnused = (\\) (getStateDomain d) qs
@@ -286,7 +305,7 @@ reachableDelta af@(F d sqf qi) = let
     nDelta = foldl (flip Map.delete) d ks
   in
     F nDelta (Set.intersection sqf (Set.fromList qs)) qi
-reachableDelta afn@(FN dn sqf qi) = let
+reachableFinite afn@(FN dn sqf qi) = let
     alp = getAlphabetList afn
     qs = reachableStates2 alp dn [qi]
     allUnused = (\\) (getStateDomain dn) qs
@@ -306,7 +325,7 @@ partitionSet2 q = Set.filter (Set.isSubsetOf q)
 distinguishableSet alp d partSet pi = let
     qM = Set.findMin pi
     eqD p q = (==) (partitionSet p partSet) (partitionSet q partSet)
-    g p q a = eqD (nextD d (p, a)) (nextD d (q, a))
+    g p q a = eqD (nextOutput d QE (p, a)) (nextOutput d QE (q, a))
     f p q = Fold.all (g p q) alp
     (sx, sy) = Set.partition (f qM) pi
   in Set.delete Set.empty $ Set.fromList [sx, sy]
@@ -335,7 +354,7 @@ lDistinguishableSet2 alp nd partSet = let
     then nPartSet
     else lDistinguishableSet2 alp nd nPartSet
 
-allStateSet (F d sqf q0) = Set.unions [getStateRangeSetD d, getStateDomainSet d, sqf, Set.singleton q0]
+allStateSet (F d sqf q0) = Set.unions [getRangeSet d, getStateDomainSet d, sqf, Set.singleton q0]
 allStateSet (FN nd sqf q0) = Set.unions [getStateRangeSetND nd, getStateDomainSet nd, sqf, Set.singleton q0]
 
 {-|
@@ -343,8 +362,8 @@ Delete redundant states and their transitions, if a state is equivalent to
 another then is redundant, two state are equivalent if they are
 undistinguisahbles.
 -}
-distinguishableDelta::(Ord a) => FiniteA a -> FiniteA a
-distinguishableDelta af@(F d sf si) = let
+distinguishableFinite::(Ord a) => FiniteA a -> FiniteA a
+distinguishableFinite af@(F d sf si) = let
     allState = allStateSet af
     pInitSet = fstPartitionSet sf allState
     alp = getAlphabet af
@@ -353,15 +372,15 @@ distinguishableDelta af@(F d sf si) = let
     allNewStateSet = Set.map f allState
     g q delta a = let
         k = (q, a)
-        nQ = nextD d k
+        nQ = nextOutput d QE k
       in if nQ==QE
         then delta
-        else Map.insert k (f nQ, ()) delta
+        else Map.insert k (f nQ) delta
     h delta q = Fold.foldl (g q) delta alp
     newDelta = Fold.foldl h Map.empty allNewStateSet
   in
     F newDelta (Set.map f sf) (f si)
-distinguishableDelta afn@(FN nd sf si) = let
+distinguishableFinite afn@(FN nd sf si) = let
     allState = allStateSet afn
     pInitSet = fstPartitionSet sf allState
     alp = getAlphabet afn
@@ -387,7 +406,7 @@ Minimize a finite automaton,
 2. Delete unreachable states and their transitions
 -}
 minimizeFinite::(Ord a) => FiniteA a -> FiniteA a
-minimizeFinite = reachableDelta . distinguishableDelta
+minimizeFinite = reachableFinite . distinguishableFinite
 
 state2Set::(Ord a) => Label a -> Set.Set a
 state2Set QE    = Set.empty
@@ -414,18 +433,18 @@ updateDeltaBySym::(Ord a) => NDelta a -> LabelSS a -> Symbol -> Delta (SetLabel 
 updateDeltaBySym nd qsq a d = let
     k = (qsq, a)
     psp = Q $ nextStateSet nd qsq a
-  in Map.insert k (psp, ()) d
+  in Map.insert k psp d
 
 updateDeltaByState::(Ord a) => NDelta a -> LabelSS a -> Delta (SetLabel a) -> Delta (SetLabel a)
 updateDeltaByState nd qsq delta = let
     f d a = updateDeltaBySym nd qsq a d
-  in Fold.foldl f delta (getFirstParamSet nd)
+  in Fold.foldl f delta (getParamDomainSet nd)
 
 updateDelta::(Ord a) => NDelta a -> LabelSS a -> Delta (SetLabel a) -> Delta (SetLabel a)
 updateDelta nd qsq d = let
     dDom = getStateDomainSet d
     newD = updateDeltaByState nd qsq d
-    newDDom = getStateRangeSetD newD
+    newDDom = getRangeSet newD
     difS = Set.difference (Set.difference newDDom dDom) (Set.fromList [qsq])
     f delta psp = updateDelta nd psp delta
   in if Set.null difS
@@ -440,11 +459,11 @@ isNewFinal sa (Q sq) = let
 
 convertFA'::(Ord a) => FiniteA a -> FiniteA (SetLabel a)
 convertFA' (FN nd sqf q0) = let
-    alp = getFirstParamSet nd
+    alp = getParamDomainSet nd
     newQ0 = Q $ Set.singleton q0
     newD = updateDelta nd newQ0 Map.empty
     sf = setState2Set sqf
-    dDom = Set.unions [getStateDomainSet newD, getStateRangeSetD newD, Set.singleton newQ0]
+    dDom = Set.unions [getStateDomainSet newD, getRangeSet newD, Set.singleton newQ0]
     newSQF = Set.filter (isNewFinal sf) dDom
   in minimizeFinite $ F newD newSQF newQ0
 
@@ -463,8 +482,9 @@ mapSetLabel o sqsq = Set.map $ newLabel o sqsq
 
 mapDeltaLabel::(Enum a, Ord a) => a -> Set.Set (LabelSS a) -> Delta (SetLabel a) -> Delta a
 mapDeltaLabel o sqsq rareD = let
-    f (qsq, x) = (newLabel o sqsq qsq, x)
-  in Map.mapKeys f (Map.map f rareD)
+		f (qsq, x) = (newLabel o sqsq qsq, x)
+		g = newLabel o sqsq
+  in Map.mapKeys f (Map.map g rareD)
 
 state2Enum::(Enum a) => Label a -> a
 state2Enum QE    = toEnum 0
@@ -481,7 +501,7 @@ Finite Autmaton Equivalence
 -}
 convertFA::(Enum a, Ord a) => FiniteA a -> FiniteA a
 convertFA (F d sqf q0) = let
-    f (x, y) = Set.singleton (x, y)
+    f x = Set.singleton (x, ())
   in
     FN (fmap f d) sqf q0
 convertFA afn@(FN nd sqf q0) = let
@@ -494,12 +514,12 @@ Finite Transducer Autmaton Similarity
 -}
 convertTA::(Ord a) => Transductor a -> Transductor a
 convertTA (Moore d l qf s) = let
-		f _ (QE,_) nl = nl
-		f (p,a) (q,_) nl = Map.insert (p,a) (nextSymbol l (q, ())) nl
+		f _ QE nl = nl
+		f (p,a) q nl = Map.insert (p,a) (nextSymbol l (q, ())) nl
 	in Mealy d (Map.foldrWithKey f Map.empty d) qf s
 convertTA (Mealy d l qf s) = let
-		f _ (QE,_) nl = nl
-		f (p,a) (q,_) nl = Map.insert (q,()) (nextSymbol l (p,a)) nl
+		f _ QE nl = nl
+		f (p,a) q nl = Map.insert (q,()) (nextSymbol l (p,a)) nl
 	in Moore d (Map.foldrWithKey f Map.empty d) qf s
 	--bad definition
 
@@ -509,13 +529,13 @@ Tells if a finite automaton had empty language or not.
 -}
 automatonEssence:: (Ord a) => FiniteA a -> Essence
 automatonEssence af@F{} = let
-    (F d sqf q0) = reachableDelta af
-    rangeD = getStateRangeSetD d
+    (F d sqf q0) = reachableFinite af
+    rangeD = getRangeSet d
   in if Set.null (Set.intersection rangeD sqf) && Set.notMember q0 sqf
     then Empty
     else Occupied
 automatonEssence af@FN{} = let
-    (FN nd sqf q0) = reachableDelta af
+    (FN nd sqf q0) = reachableFinite af
     rangeD = getStateRangeSetND nd
   in if Set.null (Set.intersection rangeD sqf) && Set.notMember q0 sqf
     then Empty

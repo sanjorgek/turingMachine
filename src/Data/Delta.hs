@@ -32,20 +32,23 @@ module Data.Delta
   -- ** Functions
   ,liftL
   ,nextTMaybe
+	,nextOutput
   ,nextSymbol
   -- * Auxiliar functions
-  ,getFirstParam
-  ,getFirstParamSet
+	,getStateDomain
+	,getStateDomainSet
+  ,getParamDomain
+  ,getParamDomainSet
+	,getRange
+	,getRangeSet
+	,getStateRangeD
+	,getStateRangeSetD
+	,getStateRangeND
+	,getStateRangeSetND
 	,getSecondParamD
   ,getSecondParamND
 	,getSecondParamSetD
   ,getSecondParamSetND
-  ,getStateDomain
-  ,getStateDomainSet
-  ,getStateRangeD
-  ,getStateRangeND
-  ,getStateRangeSetD
-  ,getStateRangeSetND
 ) where
 import qualified Data.Foldable   as Fold
 import           Data.Label
@@ -77,13 +80,19 @@ nextTMaybe dt k = if Map.member k dt
   else Nothing
 
 {-|
+Take a state and a parem and retrun a output, or a default value
+-}
+nextOutput::(Ord p1, Ord a) => (:*>:) a p1 o -> o -> (Label a, p1) -> o
+nextOutput dt o k = fromMaybe o $ nextTMaybe dt k
+
+{-|
 For simple map with Chars range
 -}
 nextSymbol::(Ord p1, Ord a) => (:*>:) a p1 Symbol -> (Label a, p1) -> Symbol
-nextSymbol dt k = fromMaybe '\NUL' $ nextTMaybe dt k
+nextSymbol dt = nextOutput dt '\NUL'
 
 {-|
-Deterministic Delta
+Deterministic Delta with one param
 
 Maps a tuple, a state and a param, to another tuple, a state and a param.
 -}
@@ -126,28 +135,40 @@ nextND :: (Ord p1, Ord a) => (:-<:) a p1 p2 -> p2 -> (Label a, p1) -> Set.Set (L
 nextND dt p k =  maybe (Set.singleton QE) (Set.map fst) $ nextTMaybe dt k
 
 {-|
-Gets all params at domain, for (:->:) and (:-<:)
+Gets all params at domain, for all (:*>:)
 -}
-getFirstParam::(Eq b) => Map.Map (a, b) a1 -> [b]
-getFirstParam = nub . fmap snd . Map.keys
+getParamDomain::(Eq b) => (:*>:) a b o -> [b]
+getParamDomain = nub . fmap snd . Map.keys
 
 {-|
-Gets all params at domain, for (:-<:) and (:-<:)
+Gets all params at domain, for all (:*>:)
 -}
-getFirstParamSet::(Ord b) => Map.Map (a, b) a1 -> Set.Set b
-getFirstParamSet = Set.fromList . fmap snd . Map.keys
+getParamDomainSet::(Ord b) => (:*>:) a b o -> Set.Set b
+getParamDomainSet = Set.fromList . fmap snd . Map.keys
 
 {-|
-Gets all states at domain, for (:->:) and (:-<:)
+Gets all states at domain, for all (:*>:)
 -}
-getStateDomain::(Eq a) => Map.Map (a, b) a1 -> [a]
+getStateDomain::(Eq a) => (:*>:) a b o -> [Label a]
 getStateDomain = nub . fmap fst . Map.keys
 
 {-|
-Gets all states at domain, for (:->:) and (:-<:)
+Gets all states at domain, for all (:*>:)
 -}
-getStateDomainSet::(Ord a) => Map.Map (a, b) a1 -> Set.Set a
+getStateDomainSet::(Ord a) => (:*>:) a b o -> Set.Set (Label a)
 getStateDomainSet = Set.fromList . fmap fst . Map.keys
+
+{-|
+Gets param at range, for (:*>:)
+-}
+getRange::(Eq o) => (:*>:) a b o -> [o]
+getRange = nub . Map.elems
+
+{-|
+Gets param at range, for (:*>:)
+-}
+getRangeSet::(Ord o) => (:*>:) a b o -> Set.Set o
+getRangeSet = Set.fromList . Map.elems
 
 {-|
 Gets all params at range, for (:->:)
