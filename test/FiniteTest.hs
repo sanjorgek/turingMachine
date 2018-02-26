@@ -92,6 +92,20 @@ instance (Ord a, Arbitrary a) => Arbitrary (FiniteA a) where
     af <- valid
     (oneof . fmap return) [afn, af]
 
+instance (Ord a,Arbitrary a) => Variant (Transductor a) where
+  invalid = do
+    d <- invalid
+    l1 <- invalid
+    l2 <- invalid
+    q0 <- invalid
+    (oneof . fmap return) [Moore d l1 q0, Mealy d l2 q0]
+  valid = do
+    d <- valid
+    l1 <- valid
+    l2 <- valid
+    q0 <- valid
+    (oneof . fmap return) [Moore d l1 q0, Mealy d l2 q0]
+
 pairWord = F (liftDelta [(1,'0',1),(1,'1',2),(2,'0',2),(2,'1',1)]) (Set.fromList [Q 2]) (Q 2)
 
 emptyLang1 = F (liftDelta [(1,'0',1),(1,'1',2),(2,'0',2),(2,'1',1)]) (Set.fromList [Q 3]) (Q 2)
@@ -106,17 +120,21 @@ finiteAut = describe "Finite automaton check" . it "pair of one's" $ do
     checkString pairWord "11111" `shouldBe` False
     checkString pairWord "11011" `shouldBe` True
 
-deltaMoore = liftDelta [('B','0','B'),('B','1','C'),('C','0','C'),('C','1','A'),('A','0','A')]
+deltaMoore = liftDelta [('A','0','A'),('A','1','B'),('B','0','B'),('B','1','C'),('C','0','C'),('C','1','D'),('D','0','D'),('D','1','A')]
 
-moore = Moore deltaMoore (liftL1 [('B','0'),('C','2'),('A','1')]) Set.empty (Q 'B')
+lambda1 = liftL1 [('B','1'),('C','2'),('A','0'),('D','3')]
 
-deltaMealy = liftDelta [('A','0','A'),('A','1','B'),('B','0','B'),('B','1','A')]
+moore = Moore deltaMoore lambda1 (Q 'A')
 
-mealy = Mealy deltaMealy (liftL2 [('A','0','1'),('A','1','1'),('B','0','0'),('B','1','0')]) (Set.singleton (Q 'B')) (Q 'A')
+finMoore = F deltaMoore (Set.fromList [Q 'A', Q 'B', Q 'C', Q 'D']) (Q 'A')
 
-mooreToMealy = describe "Transducer equivalence" . it "two examples" $ do
-  convertTA moore `shouldBe` Mealy deltaMoore (liftL2 [('A','0','1'),('C','1','1'),('C','0','2'),('B','0','0'),('B','1','2')]) Set.empty (Q 'B')
---  convertTA mealy `shouldBe` Moore deltaMealy Map.empty (Set.singleton (Q 'B')) (Q 'A')
+mooreToMealy = describe "Transducer equivalence" $ do
+  prop "finite to moore translate the same" $
+    \ w -> not (checkString finMoore w) || translate moore w == translate (finiteToMoore finMoore lambda1) w
+  prop "moore to finite check the same" $
+    \ w -> not (checkString finMoore w) || checkString finMoore w == checkString (transducerToFinite moore (Set.fromList [Q 'A', Q 'B', Q 'C', Q 'D'])) w
+  prop "moore to mealy translate same tail" $
+    \ w -> null w || not (checkString finMoore w) || (tail . translate moore) w == translate (convertTA moore) w
 
 transDetTest = describe "Transform" $ do
   prop "reachable check same" $
@@ -127,7 +145,7 @@ transDetTest = describe "Transform" $ do
     \ af w -> checkString (minimizeFinite (af::FiniteA Int)) w == checkString af w
   prop "minimize" $
     \ af -> let naf = minimizeFinite (af::FiniteA Int) in minimizeFinite naf == naf
-  prop "equivalence" $
+  prop "finite equivalence" $
     \fa w -> checkString (fa:: FiniteA Int) w == checkString (convertFA fa) w
 
 cardinalityTest = describe "Cardinal" $ do

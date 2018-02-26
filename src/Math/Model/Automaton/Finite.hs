@@ -212,72 +212,78 @@ Transducer Autmaton, both types:
 2. Mealy
 -}
 data Transductor a =
-	Moore (Delta a) (Lambda1 a) (Final a) (Label a)
-	|Mealy (Delta a) (Lambda2 a) (Final a) (Label a) deriving(Show, Eq)
+	Moore (Delta a) (Lambda1 a) (Label a)
+	|Mealy (Delta a) (Lambda2 a) (Label a) deriving(Show, Eq)
 
 {-|
 Extends nextState function
 -}
-transMoore:: (Ord a) => Delta a -> Lambda1 a -> Wd -> State (Wd, Label a) (Label a)
-transMoore _ _ [] = do
-	(_, q) <- get
-	return q
+transMoore:: (Ord a) => Delta a -> Lambda1 a -> Wd -> State (Wd, Label a) Wd
+transMoore _ l [] = do
+	(ws, q) <- get
+	if q==QE
+		then return ws
+		else return $ ws++[nextSymbol l (q, ())]
 transMoore d l (x:xs) = do
-	(ys, q) <- get
-	put (ys++[nextSymbol l (q, ())], nextOutput d QE (q,x))
-	transMoore d l xs
+	(ws,q) <- get
+	if q==QE
+		then return ws
+		else do
+			put (ws++[nextSymbol l (q, ())], nextOutput d QE (q,x))
+			transMoore d l xs
 
 {-|
 Extends nextState function
 -}
-transMealy:: (Ord a) => Delta a -> Lambda2 a -> Wd -> State (Wd, Label a) (Label a)
+transMealy:: (Ord a) => Delta a -> Lambda2 a -> Wd -> State (Wd, Label a) Wd
 transMealy _ _ [] = do
-	(_, q) <- get
-	return q
+	(ws, q) <- get
+	return ws
 transMealy d l (x:xs) = do
-	(ys, q) <- get
-	put (ys++[nextSymbol l (q,x)], nextOutput d QE (q,x))
-	transMealy d l xs
+	(ws, q) <- get
+	if q==QE
+		then return ws
+		else do
+			put (ws++[nextSymbol l (q, x)], nextOutput d QE (q,x))
+			transMealy d l xs
 
 {-|
 For every transducer, given a word the automaton change all symbols in lambda
 -}
-translate::(Ord a) => Transductor a -> Wd -> (Wd, Bool)
-translate (Moore d l qF s) ws = let
-		(q, (nws, _)) = runState (transMoore d l ws) ([], s)
-		f y = (not.isError) y && terminal qF y
-	in (nws, f q)
-translate (Mealy d l qF s) ws = let
-		(q, (nws, _)) = runState (transMealy d l ws) ([], s)
-		f y = (not.isError) y && terminal qF y
-	in (nws, f q)
+translate::(Ord a) => Transductor a -> Wd -> Wd
+translate (Moore d l s) ws = let
+		(nws, _) = runState (transMoore d l ws) ([], s)
+	in nws
+translate (Mealy d l s) ws = let
+		(nws, _) = runState (transMealy d l ws) ([], s)
+	in nws
 
 {-|
 Gets alphabet for some finite automaton
 -}
 getOutputAlphabet:: Transductor a -> Alphabet
-getOutputAlphabet (Moore _ l _ _) = getRangeSet l
-getOutputAlphabet (Mealy _ l _ _) = getRangeSet l
+getOutputAlphabet (Moore _ l _) = getRangeSet l
+getOutputAlphabet (Mealy _ l _) = getRangeSet l
 
 {-|
 Transforms a Transducer to a transducer Autmaton
 -}
-transducerToFinite:: Transductor a -> FiniteA a
-transducerToFinite (Moore d _ qf s) = F d qf s
-transducerToFinite (Mealy d _ qf s) = F d qf s
+transducerToFinite:: Transductor a -> Final a -> FiniteA a
+transducerToFinite (Moore d _ s) qf = F d qf s
+transducerToFinite (Mealy d _ s) qf = F d qf s
 
 {-|
 Transforms a Finite Autmaton with some lambda to a Moore Transducer
 -}
 finiteToMoore:: (Enum a, Ord a) => FiniteA a -> Lambda1 a -> Transductor a
-finiteToMoore (F d qf s) l = Moore d l qf s
+finiteToMoore (F d _ s) l = Moore d l s
 finiteToMoore fn l = finiteToMoore (convertFA fn) l
 
 {-|
 Transforms a Finite Autmaton with some lambda to a Mealy Transducer
 -}
 finiteToMealy:: (Enum a, Ord a) => FiniteA a -> Lambda2 a -> Transductor a
-finiteToMealy (F d qf s) l = Mealy d l qf s
+finiteToMealy (F d _ s) l = Mealy d l s
 finiteToMealy fn l = finiteToMealy (convertFA fn) l
 
 reachableStates1 alp d xs = let
@@ -513,14 +519,14 @@ convertFA afn@(FN nd sqf q0) = let
 Finite Transducer Autmaton Similarity
 -}
 convertTA::(Ord a) => Transductor a -> Transductor a
-convertTA (Moore d l qf s) = let
+convertTA (Moore d l s) = let
 		f _ QE nl = nl
 		f (p,a) q nl = Map.insert (p,a) (nextSymbol l (q, ())) nl
-	in Mealy d (Map.foldrWithKey f Map.empty d) qf s
-convertTA (Mealy d l qf s) = let
+	in Mealy d (Map.foldrWithKey f Map.empty d) s
+convertTA (Mealy d l s) = let
 		f _ QE nl = nl
 		f (p,a) q nl = Map.insert (q,()) (nextSymbol l (p,a)) nl
-	in Moore d (Map.foldrWithKey f Map.empty d) qf s
+	in Moore d (Map.foldrWithKey f Map.empty d) s
 	--bad definition
 
 
