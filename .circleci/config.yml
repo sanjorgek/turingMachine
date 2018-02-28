@@ -1,0 +1,15 @@
+version: 2
+jobs:
+  build:
+    docker:
+      - image: haskell:8
+        command: /sbin/init
+    steps:
+      - checkout
+      - run: cabal update
+      - run: cabal sandbox init
+      - run: cabal install --enable-tests --enable-benchmarks
+      - run: cabal configure --enable-tests --enable-benchmarks
+      - run: cabal build
+      - run: cabal test --show-details=always
+      - run: cabal bench
