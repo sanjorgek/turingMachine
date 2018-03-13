@@ -1,6 +1,19 @@
 version: 2
 jobs:
-  build:
+  build82:
+    docker:
+      - image: haskell:8
+        command: /sbin/init
+    steps:
+      - checkout
+      - run: cabal update
+      - run: cabal sandbox init
+      - run: cabal install --enable-tests --enable-benchmarks
+      - run: cabal configure --enable-tests --enable-benchmarks 
+      - run: cabal build
+      - run: cabal test --show-details=always
+      - run: cabal bench
+  build8:
     docker:
       - image: haskell:8
         command: /sbin/init
@@ -13,3 +26,38 @@ jobs:
       - run: cabal build
       - run: cabal test --show-details=always
       - run: cabal bench
+  build710:
+    docker:
+      - image: haskell:7.10
+        command: /sbin/init
+    steps:
+      - checkout
+      - run: cabal update
+      - run: cabal sandbox init
+      - run: cabal install --enable-tests --enable-benchmarks
+      - run: cabal configure --enable-tests --enable-benchmarks
+      - run: cabal build
+      - run: cabal test --show-details=always
+      - run: cabal bench
+  build78:
+    docker:
+      - image: haskell:7.8
+        command: /sbin/init
+    steps:
+      - checkout
+      - run: cabal update
+      - run: cabal sandbox init
+      - run: cabal install --enable-tests --enable-benchmarks
+      - run: cabal configure --enable-tests --enable-benchmarks
+      - run: cabal build
+      - run: cabal test --show-details=always
+      - run: cabal bench
+
+workflows:
+  version: 2
+  build_and_test:
+    jobs:
+      - build78
+      - build710
+      - build8
+      - build82
