@@ -48,6 +48,19 @@ library
   hs-source-dirs:      src
   default-language:    Haskell2010
 
+test-suite numerable
+  type:                exitcode-stdio-1.0
+  hs-source-dirs:      test
+  main-is:             NumerableTest.hs
+  --other-modules:
+  build-depends:       base
+                       , hspec
+                       , hspecVariant >=1 && <2
+                       , QuickCheck
+                       , QuickCheckVariant >=1 && <2
+                       , containers
+                       , turingMachine
+  default-language:    Haskell2010
 
 test-suite state
   type:                exitcode-stdio-1.0
@@ -61,6 +74,7 @@ test-suite state
                        , QuickCheck
                        , QuickCheckVariant >=1 && <2
                        , turingMachine
+                       , random >= 1.1
   default-language:    Haskell2010
 
 test-suite sigma

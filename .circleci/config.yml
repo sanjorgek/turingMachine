@@ -2,14 +2,14 @@ version: 2
 jobs:
   build82:
     docker:
-      - image: haskell:8
+      - image: haskell:8.2
         command: /sbin/init
     steps:
       - checkout
       - run: cabal update
       - run: cabal sandbox init
-      - run: cabal install --enable-tests --enable-benchmarks
-      - run: cabal configure --enable-tests --enable-benchmarks 
+      - run: cabal install --enable-tests --enable-benchmarks --dependencies-only
+      - run: cabal configure --enable-tests --enable-benchmarks --enable-coverage --ghc-option=-DTEST
       - run: cabal build
       - run: cabal test --show-details=always
       - run: cabal bench
@@ -20,9 +20,8 @@ jobs:
     steps:
       - checkout
       - run: cabal update
-      - run: cabal sandbox init
-      - run: cabal install --enable-tests --enable-benchmarks
-      - run: cabal configure --enable-tests --enable-benchmarks
+      - run: cabal install --enable-tests --enable-benchmarks --dependencies-only
+      - run: cabal configure --enable-tests --enable-benchmarks --enable-coverage --ghc-option=-DTEST
       - run: cabal build
       - run: cabal test --show-details=always
       - run: cabal bench
@@ -33,7 +32,6 @@ jobs:
     steps:
       - checkout
       - run: cabal update
-      - run: cabal sandbox init
       - run: cabal install --enable-tests --enable-benchmarks
       - run: cabal configure --enable-tests --enable-benchmarks
       - run: cabal build
@@ -46,7 +44,6 @@ jobs:
     steps:
       - checkout
       - run: cabal update
-      - run: cabal sandbox init
       - run: cabal install --enable-tests --enable-benchmarks
       - run: cabal configure --enable-tests --enable-benchmarks
       - run: cabal build
