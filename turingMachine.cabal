@@ -24,7 +24,6 @@ source-repository head
 
 library
   exposed-modules:     Data.Delta
-                       , Data.Helper
                        , Data.Numerable
                        , Data.Sigma
                        , Data.Label

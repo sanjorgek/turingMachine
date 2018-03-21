@@ -21,7 +21,6 @@ module Data.Delta
 	-- *** Constructor
 	,(:->:)(..)
 	-- *** Functions
-  ,liftD
 	,nextD
 	-- ** Not deterministic
 	-- *** Constructor
@@ -75,6 +74,7 @@ liftL ds = let
 Take a state and a param and maybe resolve some output
 -}
 nextTMaybe :: (Ord p1, Ord a) => (:*>:) a p1 o -> (Label a, p1) -> Maybe o
+nextTMaybe _ (QE,_) = Nothing
 nextTMaybe dt k = if Map.member k dt
   then Just $ dt Map.! k
   else Nothing
@@ -99,14 +99,6 @@ Maps a tuple, a state and a param, to another tuple, a state and a param.
 type (:->:) a p1 p2 = (:*>:) a p1 (Label a, p2)
 
 {-|
-Lifts a deterministic delta from a 4-tuple list
--}
-liftD::(Ord a, Ord p1) => [(a, p1, a, p2)] -> (:->:) a p1 p2
-liftD ds = let
-    (xs, ys, ws, zs) = unzip4 ds
-  in liftL $ zip3 xs ys $ zip (fmap return ws) zs
-
-{-|
 Next state function for deterministic delta
 -}
 nextD :: (Ord p1, Ord a) => (:->:) a p1 p2 -> (Label a, p1) -> Label a
@@ -117,22 +109,22 @@ Non-Deterministic Delta
 
 Maps a tuple, a state and a param, to a tuple, a state list and a param.
 -}
-type (:-<:) a p1 p2 = (:*>:) a p1 (Set.Set (Label a, p2))
+type (:-<:) a p1 p2 = (:*>:) a p1 (SetLabel a, p2)
 
 {-|
 Lifts a non-deterministic delta from a 4-tuple list
 -}
-liftND::(Ord a, Ord p1, Ord p2) => [(a, p1, [(a,p2)])] -> (:-<:) a p1 p2
+liftND::(Ord a, Ord p1) => [(a, p1, ([a],p2))] -> (:-<:) a p1 p2
 liftND ds = let
 		(xs, ys, wss) = unzip3 ds
-		f (x,y) = (return x, y)
-	in liftL $ zip3 xs ys $ fmap (Set.fromList . fmap f) wss
+		f (ws,y) = (Set.fromList (map return ws), y)
+	in liftL $ zip3 xs ys $ fmap f wss
 
 {-|
 Next state function for non-deterministic delta
 -}
-nextND :: (Ord p1, Ord a) => (:-<:) a p1 p2 -> p2 -> (Label a, p1) -> Set.Set (Label a)
-nextND dt p k =  maybe (Set.singleton QE) (Set.map fst) $ nextTMaybe dt k
+nextND :: (Ord p1, Ord a) => (:-<:) a p1 p2 -> p2 -> (Label a, p1) -> SetLabel a
+nextND dt p k =  maybe (Set.fromList [QE]) fst $ nextTMaybe dt k
 
 {-|
 Gets all params at domain, for all (:*>:)
@@ -186,13 +178,13 @@ getSecondParamSetD = Set.fromList . fmap snd . Map.elems
 Gets all params at range, for (:-<:)
 -}
 getSecondParamND::(Ord p2) => (:-<:) a p1 p2 -> [p2]
-getSecondParamND = foldr union [] . fmap (Set.toList . Set.map snd) . Map.elems
+getSecondParamND = map snd . Map.elems
 
 {-|
 Gets all params at range, for (:-<:)
 -}
 getSecondParamSetND::(Ord p2) => (:-<:) a p1 p2 -> Set.Set p2
-getSecondParamSetND = Set.unions . fmap (Set.map snd) . Map.elems
+getSecondParamSetND = Set.fromList . map snd . Map.elems
 
 {-|
 Gets first param at range, for (:->:)
@@ -210,10 +202,10 @@ getStateRangeSetD = Set.fromList . fmap fst . Map.elems
 Gets state at range in a list, for (:-<:)
 -}
 getStateRangeND::(Ord a) => (:-<:) a p1 p2 -> [Label a]
-getStateRangeND = Set.toList . Set.unions . fmap (Set.map fst) . Map.elems
+getStateRangeND = Set.toList . getStateRangeSetND
 
 {-|
 Gets state at range in a set, for (:-<:)
 -}
 getStateRangeSetND::(Ord a) => (:-<:) a p1 p2 -> Set.Set (Label a)
-getStateRangeSetND = Set.unions . fmap (Set.map fst)  . Map.elems
+getStateRangeSetND = Set.unions . map fst . Map.elems

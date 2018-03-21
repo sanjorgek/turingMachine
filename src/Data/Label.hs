@@ -78,16 +78,16 @@ instance (Ord a) => Ord (Label a) where
   compare (Q a) (Q b) = compare a b
 
 instance Monoid a => Monoid (Label a) where
-	mempty = QE
-	QE `mappend` m = m
-	m `mappend` QE = m
+	mempty = Q mempty
+	QE `mappend` _ = QE
+	_ `mappend` QE = QE
 	(Q a) `mappend` (Q b) = Q (a `mappend` b)
 
 instance F.Foldable Label where
-    foldr _ z QE    = z
-    foldr f z (Q x) = f x z
-    foldl _ z QE    = z
-    foldl f z (Q x) = f z x
+	foldr _ z QE    = z
+	foldr f z (Q x) = f x z
+	foldl _ z QE    = z
+	foldl f z (Q x) = f z x
 
 {-|
 Final label state represent a set of states which elements put end to computation

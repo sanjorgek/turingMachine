@@ -104,12 +104,7 @@ liftDelta ds = liftL $ fmap tupleAUX ds
 Transition function that for every pair, a State and a Symbol by domain, decide
 next list of states in machine
 -}
-type NDelta a = (:-<:) a Symbol ()
-
-tupleLast:: (a,b,[c]) -> (a,b,[(c,())])
-tupleLast (a,b,xs) = let
-		f x = (x,())
-	in (a,b,fmap f xs)
+type NDelta a = (:*>:) a Symbol (SetLabel a)
 
 {-|
 Lift a list of 3-tuples to a non deterministic delta
@@ -117,7 +112,10 @@ Lift a list of 3-tuples to a non deterministic delta
 >>>let deltaN = liftNDelta [(0,'0',[0]),(0,'1',[1]),(1,'0',[1]),(1,'1',[0])]
 -}
 liftNDelta::(Ord a) => [(a,Symbol,[a])] -> NDelta a
-liftNDelta ds = liftND $ fmap tupleLast ds
+liftNDelta ds = let
+		(xs, ys, wss) = unzip3 ds
+		f ws = Set.fromList (map return ws)
+	in liftL $ zip3 xs ys $ fmap f wss
 
 {-|
 Transducer function
@@ -171,8 +169,15 @@ nextState:: (Ord a) => Delta a -> Wd -> State (Label a) (Label a)
 nextState _ [] = get
 nextState d (x:xs) = do
 	q <- get
-	put (nextOutput d QE (q,x))
-	nextState d xs
+	if q==QE
+		then return q
+		else do
+			put (nextOutput d QE (q,x))
+			nextState d xs
+
+nextStates' dt = nextOutput dt (Set.singleton QE)
+
+mapNextStates dt x = Set.map (\q -> nextStates' dt (q,x))
 
 {-|
 Same as nextState but work with no deterministic delta
@@ -181,8 +186,11 @@ nextStates::(Ord a) => NDelta a -> Wd -> State (SetLabel a) (SetLabel a)
 nextStates _ [] = get
 nextStates dn (x:xs) = do
 	sq <- get
-	put ((Set.unions . Set.toList) (Set.map (\q -> nextND dn () (q,x)) sq))
-	nextStates dn xs
+	if Set.null sq
+		then return (Set.singleton QE)
+		else do
+			put ((Set.delete QE . unionsFold) (mapNextStates dn x sq))
+			nextStates dn xs
 
 {-|
 Executes a automaton over a word
@@ -293,7 +301,7 @@ reachableStates1 alp d xs = let
     if nqs==xs then nqs else reachableStates1 alp d nqs
 
 reachableStates2 alp d xs = let
-    qs = (xs ++ concat [Set.toList (nextND d () (y,x)) | x<-alp, y<-xs])\\[QE]
+    qs = (xs ++ concat [Set.toList (nextStates' d (y,x)) | x<-alp, y<-xs])\\[QE]
     nqs = nub qs
   in
     if nqs==xs then nqs else reachableStates2 alp d nqs
@@ -339,7 +347,7 @@ distinguishableSet alp d partSet pi = let
 distinguishableSet2 alp nd partSet pi = let
     qM = Set.findMin pi
     eqD p q = (==) (partitionSet2 p partSet) (partitionSet2 q partSet)
-    g p q a = eqD (nextND nd () (p, a)) (nextND nd () (q, a))
+    g p q a = eqD (nextStates' nd (p, a)) (nextStates' nd (q, a))
     f p q = Fold.all (g p q) alp
     (sx, sy) = Set.partition (f qM) pi
   in Set.delete Set.empty $ Set.fromList [sx, sy]
@@ -361,7 +369,7 @@ lDistinguishableSet2 alp nd partSet = let
     else lDistinguishableSet2 alp nd nPartSet
 
 allStateSet (F d sqf q0) = Set.unions [getRangeSet d, getStateDomainSet d, sqf, Set.singleton q0]
-allStateSet (FN nd sqf q0) = Set.unions [getStateRangeSetND nd, getStateDomainSet nd, sqf, Set.singleton q0]
+allStateSet (FN nd sqf q0) = Set.unions [(Set.unions . Map.elems) nd, getStateDomainSet nd, sqf, Set.singleton q0]
 
 {-|
 Delete redundant states and their transitions, if a state is equivalent to
@@ -395,7 +403,7 @@ distinguishableFinite afn@(FN nd sf si) = let
     allNewStateSet = Set.map f allState
     g q ndelta a = let
         k = (q, a)
-        nQ = nextND nd () k
+        nQ = nextStates' nd k
       in if Set.null nQ
         then ndelta
         else Map.insert k (Set.map f nQ, ()) ndelta
@@ -430,7 +438,7 @@ setState2Set = setState2Set' Set.empty
 
 nextStateSet::(Ord a) => NDelta a -> LabelSS a -> Symbol -> SetLabel a
 nextStateSet nd qsq a = let
-    f q = nextND nd () (q, a)
+    f q = nextStates' nd (q, a)
     g = Set.map f
     Q sq = fmap g qsq
   in unionsFold sq
@@ -507,7 +515,7 @@ Finite Autmaton Equivalence
 -}
 convertFA::(Enum a, Ord a) => FiniteA a -> FiniteA a
 convertFA (F d sqf q0) = let
-    f x = Set.singleton (x, ())
+    f x = Set.singleton x
   in
     FN (fmap f d) sqf q0
 convertFA afn@(FN nd sqf q0) = let
@@ -542,7 +550,7 @@ automatonEssence af@F{} = let
     else Occupied
 automatonEssence af@FN{} = let
     (FN nd sqf q0) = reachableFinite af
-    rangeD = getStateRangeSetND nd
+    rangeD = (Set.unions . Map.elems) nd
   in if Set.null (Set.intersection rangeD sqf) && Set.notMember q0 sqf
     then Empty
     else Occupied
