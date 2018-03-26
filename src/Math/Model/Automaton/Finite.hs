@@ -31,6 +31,7 @@ module Math.Model.Automaton.Finite
 	,nextState
 	,nextStates
 	-- ** Mininmize delta
+	,reachableStates'
 	,reachableFinite
 	,distinguishableFinite
 	,minimizeFinite
@@ -300,6 +301,14 @@ reachableStates1 alp d xs = let
   in
     if nqs==xs then nqs else reachableStates1 alp d nqs
 
+reachableStates' alp d sq = let
+		f a q = Set.singleton (nextOutput d QE (q,a))
+		g a = Fold.foldMap (f a) sq
+		sq' = Set.union sq $ Fold.foldMap g alp
+		nsq = Set.delete QE sq'
+	in
+		if nsq==sq then nsq else reachableStates' alp d nsq
+
 reachableStates2 alp d xs = let
     qs = (xs ++ concat [Set.toList (nextStates' d (y,x)) | x<-alp, y<-xs])\\[QE]
     nqs = nub qs
@@ -312,13 +321,14 @@ Gets a delta with all reachable states from initial state.
 -}
 reachableFinite::(Ord a) => FiniteA a -> FiniteA a
 reachableFinite af@(F d sqf qi) = let
-    alp = getAlphabetList af
-    qs = reachableStates1 alp d [qi]
-    allUnused = (\\) (getStateDomain d) qs
-    ks = [(x,y) | x<-allUnused, y<-alp]
-    nDelta = foldl (flip Map.delete) d ks
-  in
-    F nDelta (Set.intersection sqf (Set.fromList qs)) qi
+		alp = getAlphabet af
+		sq = reachableStates' alp d (Set.singleton qi)
+		allUnused = (Set.\\) (getStateDomainSet d) sq
+		sk = Fold.foldMap (\a -> Fold.foldMap (\q -> Set.singleton (q,a)) allUnused) alp
+    --ks = [(x,y) | x<-allUnused, y<-alp]
+		nDelta = Fold.foldl (flip Map.delete) d sk
+	in
+		F nDelta (Set.intersection sqf sq) qi
 reachableFinite afn@(FN dn sqf qi) = let
     alp = getAlphabetList afn
     qs = reachableStates2 alp dn [qi]
