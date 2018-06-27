@@ -3,9 +3,8 @@ An implementation of Turing Machine and Automaton for Language Theory
 
   [![turingMachine](https://img.shields.io/badge/turingMachine-v1.0.0.0-blue.svg?style=plastic)](https://hackage.haskell.org/package/turingMachine)
   [![Build Status](https://travis-ci.org/sanjorgek/turingMachine.svg?branch=master)](https://travis-ci.org/sanjorgek/turingMachine)
-  [![Code Climate](https://codeclimate.com/github/sanjorgek/turingMachine/badges/gpa.svg)](https://codeclimate.com/github/sanjorgek/turingMachine)
-  [![Issue Count](https://codeclimate.com/github/sanjorgek/turingMachine/badges/issue_count.svg)](https://codeclimate.com/github/sanjorgek/turingMachine)
   [![CircleCI](https://circleci.com/gh/sanjorgek/turingMachine.svg?style=svg)](https://circleci.com/gh/sanjorgek/turingMachine)
+  [![pipeline status](https://gitlab.com/sanjorgek/turingMachine/badges/master/pipeline.svg)](https://gitlab.com/sanjorgek/turingMachine/commits/master)
 
 ## Math Models
 ### Finite Automaton

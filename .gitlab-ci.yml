@@ -1,0 +1,40 @@
+before_script:
+  - cabal update
+  - cabal sandbox init
+  - cabal install --enable-tests --enable-benchmarks --dependencies-only
+
+test82:
+  image: haskell:8.2
+  stage: test
+  script:
+    - cabal configure --enable-tests --enable-benchmarks --enable-coverage --ghc-option=-DTEST
+    - cabal build
+    - cabal test --show-details=always
+    - cabal bench
+
+test8:
+  image: haskell:8
+  stage: test
+  script:
+    - cabal configure --enable-tests --enable-benchmarks --enable-coverage --ghc-option=-DTEST
+    - cabal build
+    - cabal test --show-details=always
+    - cabal bench
+
+test710:
+  image: haskell:7.10
+  stage: test
+  script:
+    - cabal configure --enable-tests --enable-benchmarks
+    - cabal build
+    - cabal test --show-details=always
+    - cabal bench
+
+test78:
+  image: haskell:7.8
+  stage: test
+  script:
+    - cabal configure --enable-tests --enable-benchmarks
+    - cabal build
+    - cabal test --show-details=always
+    - cabal bench
