@@ -1,5 +1,6 @@
 {-# OPTIONS_HADDOCK show-extensions #-}
 {-# OPTIONS_GHC -fno-warn-tabs      #-}
+{-# LANGUAGE CPP                    #-}
 {-# LANGUAGE FlexibleInstances      #-}
 {-# LANGUAGE TypeSynonymInstances   #-}
 {-|
@@ -31,11 +32,18 @@ import           Data.List
 import qualified Data.Map.Lazy as Map
 import           Data.Monoid
 import qualified Data.Set      as Set
+#if MIN_VERSION_base(4,9,0)
+import qualified Data.Semigroup      as Semi
+#endif
 
 {-|
 Symbols are character, and with Unicode CharSet we have a big amount of them.
 -}
 type Symbol = Char
+
+#if MIN_VERSION_base(4,9,0)
+instance Semi.Semigroup Symbol
+#endif
 
 {-|
 Symbol type are forced to be a monoid

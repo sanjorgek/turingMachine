@@ -31,8 +31,6 @@ library
                        , Math.Model.Automaton.Finite
                        , Math.Model.Automaton.Stack
                        , Math.Model.Turing
-                       , Math.Model.Turing.TwoWays
-                       , Math.Model.Turing.FourWays
   -- other-modules:
   other-extensions:    TypeSynonymInstances
                        , TypeOperators
