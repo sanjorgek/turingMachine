@@ -1,5 +1,6 @@
 {-# OPTIONS_GHC -fno-warn-tabs      #-}
 {-# OPTIONS_HADDOCK show-extensions #-}
+{-# LANGUAGE CPP                    #-}
 {-|
 Module      : Data.State
 Description : Simple label state data
@@ -28,6 +29,9 @@ import           Control.Monad
 import qualified Data.Foldable       as F
 import           Data.Monoid
 import qualified Data.Set            as Set
+#if MIN_VERSION_base(4,9,0)
+import qualified Data.Semigroup      as Semi
+#endif
 
 {-|
 Machine states are only a label, maybe a letter
@@ -76,6 +80,13 @@ instance (Ord a) => Ord (Label a) where
   compare _ QE        = LT
   compare QE _        = GT
   compare (Q a) (Q b) = compare a b
+
+#if MIN_VERSION_base(4,9,0)
+instance (Monoid a) => Semi.Semigroup (Label a) where
+	(<>) QE m = m
+	(<>) m QE = m
+	(<>) (Q a) (Q b) = Q (a `mappend` b)
+#endif
 
 instance Monoid a => Monoid (Label a) where
 	mempty = QE
