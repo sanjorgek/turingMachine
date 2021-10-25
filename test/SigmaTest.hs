@@ -2,8 +2,8 @@
 module Main where
 
 import qualified Data.Set              as Set
-import           Data.Sigma
-import           Test.Hspec
+import Data.Sigma ( enumWord )
+import Test.Hspec ( hspec, describe, it, shouldBe )
 import           Test.Hspec.QuickCheck
 import           Test.QuickCheck
 

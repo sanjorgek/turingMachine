@@ -2,17 +2,26 @@
 {-# LANGUAGE TypeSynonymInstances #-}
 module Main where
 
-import           Data.Numerable
+import Data.Numerable
+    ( getNatural, Discrete(Numerable, Fin), Essence(Empty, Occupied) )
 import qualified Data.Map                    as Map
 import qualified Data.Set                    as Set
-import           Data.Label
-import           Math.Model.Automaton.Finite
-import           Test.Hspec
-import           Test.Hspec.QuickCheck
-import           Test.Hspec.Variant
-import           Test.QuickCheck
-import           Test.QuickCheck.Variant
-import Data.Numerable (getNatural)
+import Data.Label ( Label(..) )
+import Math.Model.Automaton.Finite
+    ( automatonCardinality,
+      automatonEssence,
+      checkString,
+      convertFA,
+      distinguishableDelta,
+      liftDelta,
+      minimizeFinite,
+      reachableDelta,
+      FiniteA(..) )
+import Test.Hspec ( hspec, describe, it, shouldBe )
+import Test.Hspec.QuickCheck ( prop )
+import Test.Hspec.Variant ()
+import Test.QuickCheck ( oneof, Arbitrary(arbitrary) )
+import Test.QuickCheck.Variant ( Variant(..) )
 
 returnEnum = return . toEnum
 
@@ -28,9 +37,7 @@ instance Variant Char where
 
 instance (Arbitrary a) => Variant (Label a) where
   invalid = return QE
-  valid = do
-    x <- arbitrary
-    return $ Q x
+  valid = do Q <$> arbitrary
 
 instance (Variant a) => Variant [a] where
   valid = do
@@ -61,16 +68,14 @@ instance (Variant a, Variant b) => Variant ((,) a b) where
 
 instance (Ord a, Variant a) => Variant (Set.Set a) where
   invalid = do
-    xs <- invalid
-    return $ Set.fromList xs
+    Set.fromList <$> invalid
   valid = do
     xs <- valid
     (oneof . fmap return) [Set.empty, Set.fromList xs]
 
 instance (Ord k, Variant k, Variant a) => Variant (Map.Map k a) where
   invalid = do
-    xs <- invalid
-    return $ Map.fromList xs
+    Map.fromList <$> invalid
   valid = do
     xs <- valid
     (oneof . fmap return) [Map.empty, Map.fromList xs]
