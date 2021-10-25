@@ -37,7 +37,9 @@ instance Variant Char where
 
 instance (Arbitrary a) => Variant (Label a) where
   invalid = return QE
-  valid = do Q <$> arbitrary
+  valid = do
+    x <- arbitrary
+    return $ Q x
 
 instance (Variant a) => Variant [a] where
   valid = do
@@ -68,14 +70,16 @@ instance (Variant a, Variant b) => Variant ((,) a b) where
 
 instance (Ord a, Variant a) => Variant (Set.Set a) where
   invalid = do
-    Set.fromList <$> invalid
+    xs <- invalid
+    return $ Set.fromList xs
   valid = do
     xs <- valid
     (oneof . fmap return) [Set.empty, Set.fromList xs]
 
 instance (Ord k, Variant k, Variant a) => Variant (Map.Map k a) where
   invalid = do
-    Map.fromList <$> invalid
+    xs <- invalid
+    return $ Map.fromList xs
   valid = do
     xs <- valid
     (oneof . fmap return) [Map.empty, Map.fromList xs]
