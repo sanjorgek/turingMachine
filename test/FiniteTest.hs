@@ -12,6 +12,7 @@ import           Test.Hspec.QuickCheck
 import           Test.Hspec.Variant
 import           Test.QuickCheck
 import           Test.QuickCheck.Variant
+import Data.Numerable (getNatural)
 
 returnEnum = return . toEnum
 
@@ -135,8 +136,8 @@ cardinalityTest = describe "Cardinal" $ do
   prop "if (Fin n) where n>0 then Occupied" $
     \ af -> let
         e = automatonEssence (af:: FiniteA Int)
-        c@(Fin n) = automatonCardinality af
-      in (c /= Numerable) || (n == 0) || (e == Occupied)
+        c = automatonCardinality af
+      in (c /= Numerable) || (getNatural c == 0) || (e == Occupied)
   prop "if Numerable then Occupied" $
     \ af -> let
         e = automatonEssence (af:: FiniteA Int)

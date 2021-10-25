@@ -48,3 +48,7 @@ Bound limits for numerable cardinality
 instance Bounded Discrete where
   minBound = Fin 0
   maxBound = Numerable
+
+getNatural :: Discrete -> Integer
+getNatural (Fin n) = n
+getNatural _ = error "Not possible to extract the natural because is not a finit number"
