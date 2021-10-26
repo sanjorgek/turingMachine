@@ -2,16 +2,26 @@
 {-# LANGUAGE TypeSynonymInstances #-}
 module Main where
 
-import           Data.Numerable
+import Data.Numerable
+    ( getNatural, Discrete(Numerable, Fin), Essence(Empty, Occupied) )
 import qualified Data.Map                    as Map
 import qualified Data.Set                    as Set
-import           Data.Label
-import           Math.Model.Automaton.Finite
-import           Test.Hspec
-import           Test.Hspec.QuickCheck
-import           Test.Hspec.Variant
-import           Test.QuickCheck
-import           Test.QuickCheck.Variant
+import Data.Label ( Label(..) )
+import Math.Model.Automaton.Finite
+    ( automatonCardinality,
+      automatonEssence,
+      checkString,
+      convertFA,
+      distinguishableDelta,
+      liftDelta,
+      minimizeFinite,
+      reachableDelta,
+      FiniteA(..) )
+import Test.Hspec ( hspec, describe, it, shouldBe )
+import Test.Hspec.QuickCheck ( prop )
+import Test.Hspec.Variant ()
+import Test.QuickCheck ( oneof, Arbitrary(arbitrary) )
+import Test.QuickCheck.Variant ( Variant(..) )
 
 returnEnum = return . toEnum
 
@@ -135,8 +145,8 @@ cardinalityTest = describe "Cardinal" $ do
   prop "if (Fin n) where n>0 then Occupied" $
     \ af -> let
         e = automatonEssence (af:: FiniteA Int)
-        c@(Fin n) = automatonCardinality af
-      in (c /= Numerable) || (n == 0) || (e == Occupied)
+        c = automatonCardinality af
+      in (c /= Numerable) || (getNatural c == 0) || (e == Occupied)
   prop "if Numerable then Occupied" $
     \ af -> let
         e = automatonEssence (af:: FiniteA Int)

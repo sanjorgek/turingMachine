@@ -28,7 +28,7 @@ module Data.Sigma
   ,kWords
 ) where
 import           Data.Char
-import           Data.List
+import Data.List ( genericLength )
 import qualified Data.Map.Lazy as Map
 import           Data.Monoid
 import qualified Data.Set      as Set
@@ -42,7 +42,8 @@ Symbols are character, and with Unicode CharSet we have a big amount of them.
 type Symbol = Char
 
 #if MIN_VERSION_base(4,9,0)
-instance Semi.Semigroup Symbol
+instance Semi.Semigroup Symbol where
+  (<>) a b  = toEnum $ (+) (fromEnum a) (fromEnum b)
 #endif
 
 {-|

@@ -2,10 +2,10 @@
 module Main where
 
 import qualified Data.Set              as Set
-import           Data.Label
-import           Test.Hspec
-import           Test.Hspec.QuickCheck
-import           Test.QuickCheck
+import Data.Label ( terminal, Label(..) )
+import Test.Hspec ( hspec, describe )
+import Test.Hspec.QuickCheck ( prop )
+import Test.QuickCheck ( oneof, Arbitrary(arbitrary) )
 
 instance (Arbitrary a) => Arbitrary (Label a) where
   arbitrary = do

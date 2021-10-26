@@ -48,12 +48,12 @@ module Data.Delta
   ,getStateRangeSetND
 ) where
 import qualified Data.Foldable   as Fold
-import           Data.Label
-import           Data.List
+import Data.Label ( Label(QE) )
+import Data.List ( nub, union, unzip4 )
 import qualified Data.Map.Strict as Map
-import           Data.Maybe
+import Data.Maybe ( fromMaybe )
 import qualified Data.Set        as Set
-import           Data.Sigma
+import Data.Sigma ( Symbol )
 
 {-|
 Map a tuple, a state and a param, to some output
